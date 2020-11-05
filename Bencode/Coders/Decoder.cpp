@@ -3,7 +3,7 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "../types.h"
+#include "../Types.h"
 
 bencode::Decoder::type bencode::Decoder::decode_type(const char& value)
 {

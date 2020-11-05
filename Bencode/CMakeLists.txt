@@ -1,4 +1,4 @@
-﻿# CMakeList.txt: projekt CMake dla elementu Bencode, dołącz źródło i zdefiniuj
+# CMakeList.txt: projekt CMake dla elementu Bencode, dołącz źródło i zdefiniuj
 # tutaj logikę specyficzną dla projektu.
 #
 cmake_minimum_required (VERSION 3.8)
@@ -25,5 +25,3 @@ set(CODERS_SOURCES
 )
 
 add_library (Bencode "Bencode.h" "Coders.h" "Types.h" ${TYPES_SOURCES} ${CODERS_SOURCES})
-
-target_link_libraries(Bencode Coders)
