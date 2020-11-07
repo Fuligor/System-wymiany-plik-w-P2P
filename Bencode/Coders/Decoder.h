@@ -26,6 +26,7 @@ namespace bencode
 		static type decode_type(const char& value);
 		static Int* int_decoder(std::istream& stream);
 		static String* string_decoder(std::istream& stream);
+		static const wchar_t from_utf8(std::istream& stream);
 		static List* list_decoder(std::istream& stream);
 		static Dictionary* dict_decoder(std::istream& stream);
 	public:

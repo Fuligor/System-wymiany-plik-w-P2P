@@ -47,12 +47,78 @@ bencode::String* bencode::Decoder::string_decoder(std::istream& stream)
 	getline(stream, buf, ':');
 
 	size = std::stoi(buf);
-	buf.resize(size);
+	
+	std::wstring result;
 
-	stream.read(&buf[0], size);
+	for (int i = 0; i < size; ++i)
+	{
+		result.append(1, from_utf8(stream));
+	}
 
-	return new String(buf);
+	if (size != result.size())
+	{
+		throw(std::logic_error("Bencode Decoder: Wrong UTF-8 encoding!"));
+	}
+
+	return new String(result);
 }
+
+const wchar_t bencode::Decoder::from_utf8(std::istream& stream)
+{
+	wchar_t result = 0;
+	unsigned int count = 0;
+
+	unsigned char temp = stream.get();
+	if (temp <= 0x7F)
+	{
+		result = temp;
+		count = 0;
+	}
+	else if (temp <= 0xDF)
+	{
+		result = temp & 0x1F;
+		count = 1;
+	}
+	else if (temp <= 0xEF)
+	{
+		result = temp & 0xF;
+		count = 2;
+	}
+	else if (temp <= 0xF7)
+	{
+		result = temp & 0x7;
+		count = 3;
+	}
+	else if (temp <= 0xFB)
+	{
+		result = temp & 0x3;
+		count = 4;
+	}
+	else if (temp <= 0xFD)
+	{
+		result = temp & 0x1;
+		count = 5;
+	}
+	else
+	{
+		//throw(std::logic_error("Bencode Decoder: Wrong UTF-8 encoding!"));
+	}
+
+	for (unsigned int i = 0; i < count; ++i)
+	{
+		temp = stream.get();
+
+		if (temp < 0x80)
+		{
+			throw(std::logic_error("Bencode Decoder: Wrong UTF-8 encoding!"));
+		}
+
+		result = (result << 6) + (temp & 0x3F);
+	}
+
+	return result;
+}
+
 bencode::List* bencode::Decoder::list_decoder(std::istream& stream)
 {
 	List* list = new List();

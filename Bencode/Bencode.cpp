@@ -19,8 +19,8 @@ int main()
 	list.push_back(integer);
 	list.push_back(string);
 
-	cout << dict.code() << endl;
 	cout << string->code() << endl;
+	cout << dict.code() << endl;
 	cout << integer->code() << endl;
 	cout << list.code() << endl;
 
@@ -28,6 +28,9 @@ int main()
 	std::shared_ptr <bencode::ICode> decoded;
 	decoded.reset(bencode::Decoder::decode(dict.code()));
 
+	cout << decoded->code() << std::endl;
+
+	decoded.reset(bencode::Decoder::decode(string->code()));
 	cout << decoded->code() << std::endl;
 
 	return 0;

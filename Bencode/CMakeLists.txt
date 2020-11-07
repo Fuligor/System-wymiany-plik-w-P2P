@@ -24,4 +24,4 @@ set(CODERS_SOURCES
 	"Coders/Decoder.h"
 )
 
-add_library (Bencode "Bencode.h" "Coders.h" "Types.h" ${TYPES_SOURCES} ${CODERS_SOURCES})
+add_executable (Bencode "Bencode.h" "Bencode.cpp" "Coders.h" "Types.h" ${TYPES_SOURCES} ${CODERS_SOURCES})
