@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 
+#include <QString>
+
 class TorrentFile
 {
     private:

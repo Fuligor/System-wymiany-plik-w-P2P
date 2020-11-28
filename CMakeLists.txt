@@ -7,4 +7,4 @@ project ("System-wymiany-plik-w-P2P")
 
 # Uwzględnij podprojekty.
 add_subdirectory ("Bencode")
-#add_subdirectory ("TorrentFile")
+add_subdirectory ("TorrentFile")
