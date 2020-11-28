@@ -87,18 +87,15 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <QtRcc Include="Window.qrc" />
+    <QtUic Include="ShareFileWindow.ui" />
     <QtUic Include="Window.ui" />
     <QtMoc Include="Window.h" />
-    <ClCompile Include="File.cpp" />
-    <ClCompile Include="FileFrag.cpp" />
+    <ClCompile Include="ShareFileWindow.cpp" />
     <ClCompile Include="Window.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="File.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <QtMoc Include="FileFrag.h" />
+    <QtMoc Include="ShareFileWindow.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

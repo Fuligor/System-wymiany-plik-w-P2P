@@ -9,10 +9,6 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
     </Filter>
-    <Filter Include="Resource Files">
-      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
-      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
-    </Filter>
     <Filter Include="Form Files">
       <UniqueIdentifier>{99349809-55BA-4b9d-BF79-8FDBB0286EB3}</UniqueIdentifier>
       <Extensions>ui</Extensions>
@@ -24,12 +20,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <QtRcc Include="Window.qrc">
-      <Filter>Resource Files</Filter>
-    </QtRcc>
-    <QtUic Include="Window.ui">
-      <Filter>Resource Files</Filter>
-    </QtUic>
     <QtMoc Include="Window.h">
       <Filter>Header Files</Filter>
     </QtMoc>
@@ -41,19 +31,26 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="File.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="FileFrag.cpp">
+    <ClCompile Include="ShareFileWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="File.h">
+    <QtMoc Include="ShareFileWindow.h">
       <Filter>Header Files</Filter>
     </QtMoc>
-    <QtMoc Include="FileFrag.h">
-      <Filter>Header Files</Filter>
-    </QtMoc>
+  </ItemGroup>
+  <ItemGroup>
+    <QtUic Include="ShareFileWindow.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+    <QtUic Include="Window.ui">
+      <Filter>Form Files</Filter>
+    </QtUic>
+  </ItemGroup>
+  <ItemGroup>
+    <QtRcc Include="Window.qrc">
+      <Filter>Form Files</Filter>
+    </QtRcc>
   </ItemGroup>
 </Project>

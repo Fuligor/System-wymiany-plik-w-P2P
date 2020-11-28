@@ -2,12 +2,11 @@
 
 #include "Window.h"
 
-#include "File.h"
-#include "FileFrag.h"
-
 Window::Window(QWidget *parent)
     : QMainWindow(parent)
 {
     ui.setupUi(this);
+    shareFileWindow = new ShareFileWindow(this);
 
+    connect(ui.ShareNewFile, SIGNAL(clicked()), shareFileWindow, SLOT(show()));
 }
