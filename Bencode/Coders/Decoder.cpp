@@ -163,7 +163,7 @@ bencode::Dictionary* bencode::Decoder::dict_decoder(std::istream& stream)
 	return dict;
 }
 
-bencode::ICode* bencode::Decoder::decode(std::istream&& stream)
+bencode::ICode* bencode::Decoder::decode(std::istream& stream)
 {
 	ICode* result = nullptr;
 
