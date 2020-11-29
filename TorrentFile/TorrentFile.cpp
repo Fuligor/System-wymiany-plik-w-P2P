@@ -1,10 +1,13 @@
 #include "TorrentFile.h"
+
 #include <QFileInfo>
 #include <QDateTime>
 #include <QDate>
 #include <QTextStream>
+
+#include <Bencode.h>
+
 #include "File.h"
-#include "../Bencode/Bencode.h"
 
 TorrentFile::TorrentFile(std::string fname, std::string Utracker, int pLength)
 {
