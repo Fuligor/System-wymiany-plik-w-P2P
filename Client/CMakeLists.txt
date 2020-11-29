@@ -11,21 +11,27 @@ set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
 
 find_package(Qt5 COMPONENTS Widgets REQUIRED)
+find_package(Qt5 COMPONENTS Network REQUIRED)
 # Dodaj źródło do pliku wykonywalnego tego projektu.
 
 set(SOURCES 
-	"File.h" 
-	"File.cpp"
-	"FileFrag.h"
-	"FileFrag.cpp" 
-	"TorrentFile.h"
-	"TorrentFile.cpp"
+	"main.cpp" 
+	"ShareFileWindow.cpp"
+	"ShareFileWindow.h"
+	"ShareFileWindow.ui"
+	"Window.cpp" 
+	"Window.h"
+	"Window.ui"
+	"Window.qrc"
 )
 
-add_library (TorrentFile ${SOURCES})
+add_executable (Client ${SOURCES})
 
-target_include_directories(TorrentFile
+target_include_directories(Client
           PUBLIC "${PROJECT_SOURCE_DIR}/Bencode"
 )
 
-target_link_libraries(TorrentFile Qt5::Widgets)
+install(TARGETS Client DESTINATION bin)
+
+target_link_libraries(Client Qt5::Widgets)
+target_link_libraries(Client Qt5::Network)
