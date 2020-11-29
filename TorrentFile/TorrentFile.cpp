@@ -1,10 +1,13 @@
 #include "TorrentFile.h"
+
 #include <QFileInfo>
 #include <QDateTime>
 #include <QDate>
 #include <QTextStream>
+
+#include <Bencode.h>
+
 #include "File.h"
-#include "../Bencode/Bencode.h"
 
 TorrentFile::TorrentFile(std::string fname, std::string Utracker, int pLength)
 {
@@ -25,12 +28,12 @@ void TorrentFile::createFile()
     {
         infoDict["piece length"] = std::make_shared <bencode::Int> (pieceLength);
         infoDict["pieces"] = std::make_shared <bencode::String> (file2.getFragsHash());
-        infoDict["name"] = std::make_shared <bencode::String> (file.fileName());
+        infoDict["name"] = std::make_shared <bencode::String> (file.fileName().toStdString());
         infoDict["length"] = std::make_shared <bencode::Int> (file.size());
     }
 
     metainfoDict["info"] = std::make_shared <bencode::Dict> (infoDict);
-    metainfoDict["announce"] = std::make_shared <bencode::String> (URLtracker);
+    metainfoDict["announce"] = std::make_shared <bencode::String> (URLtracker.toStdString());
     QDateTime creation_date = QDateTime::currentDateTime();
     metainfoDict["creation date"] = std::make_shared <bencode::Int> (creation_date.toTime_t());
 

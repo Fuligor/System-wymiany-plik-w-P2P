@@ -1,5 +1,7 @@
 #include "File.h"
 
+#include <cmath>
+
 #include <QFile>
 #include <QString>
 
@@ -55,7 +57,7 @@ const std::string File::getFragsHash() const
 
 	for(auto frag: mFileFragments)
 	{
-		result += frag->getHash().left(20);
+		result += frag->getHash().toStdString();
 	}
 
 	return result;
