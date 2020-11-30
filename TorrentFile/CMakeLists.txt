@@ -20,6 +20,10 @@ set(SOURCES
 	"FileFrag.cpp" 
 	"TorrentFile.h"
 	"TorrentFile.cpp"
+	"torrentReader.h"
+	"torrentReader.cpp"
+	"TrackerRequest.h"
+	"TrackerRequest.cpp"
 )
 
 add_library (TorrentFile ${SOURCES})

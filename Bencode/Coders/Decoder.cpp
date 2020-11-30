@@ -125,7 +125,7 @@ bencode::List* bencode::Decoder::list_decoder(std::istream& stream)
 	
 	while (true)
 	{
-		std::shared_ptr <ICode> temp(decode(std::move(stream)));
+		std::shared_ptr <ICode> temp(decode(stream));
 
 		if (temp == nullptr)
 		{
@@ -155,7 +155,7 @@ bencode::Dictionary* bencode::Decoder::dict_decoder(std::istream& stream)
 		}
 
 		std::shared_ptr <String> key(string_decoder(stream));
-		std::shared_ptr <ICode> value(decode(std::move(stream)));
+		std::shared_ptr <ICode> value(decode(stream));
 
 		(*dict)[*key] = value;
 	}
@@ -192,5 +192,6 @@ bencode::ICode* bencode::Decoder::decode(std::istream& stream)
 
 bencode::ICode* bencode::Decoder::decode(const std::string& string)
 {
-	return decode(std::istringstream(string));
+	std::istringstream  stream(string);
+	return decode(stream);
 }

@@ -33,6 +33,34 @@ bencode::String::String(const String&& other) noexcept
 	: std::wstring(other)
 {}
 
+bencode::String& bencode::String::operator=(const char* value)
+{
+	*this = String(value);
+
+	return *this;
+}
+
+bencode::String& bencode::String::operator=(const wchar_t* value)
+{
+	*this = String(value);
+
+	return *this;
+}
+
+bencode::String& bencode::String::operator=(const std::string& value)
+{
+	*this = String(value.c_str());
+
+	return *this;
+}
+
+bencode::String& bencode::String::operator=(const String& other)
+{
+	assign(other);
+
+	return *this;
+}
+
 std::string bencode::String::code() const
 {
 	std::string result;

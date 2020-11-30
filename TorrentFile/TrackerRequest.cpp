@@ -6,13 +6,13 @@ TrackerRequest::TrackerRequest(std::string fileName)
     bencode::Dict *tmp;
     tmp = torrentReader(fileName).getDict();
     info = (*tmp)["info"];
-    peer_id =  "";
+    peer_id = "";
     port = 0;
     uploaded = 0;
     downloaded = 0;
-    left = dynamic_cast <bencode::Int*> ((*tmp)["length"].get());
-    compact = 0;
-    no_peer_id = 0;
+    length = dynamic_cast <bencode::Int*> ((*tmp)["length"].get());
+    compact = false;
+    no_peer_id = false;
     event = "started";
     
 }
@@ -39,11 +39,6 @@ void TrackerRequest::setDownloaded(int down)
     downloaded = down;
     return;
 }
-void TrackerRequest::setLeft(int le)
-{
-    left = le;
-    return;
-}
 void TrackerRequest::setCompact(bool com)
 {
     compact = com;
@@ -67,7 +62,7 @@ std::string TrackerRequest::getRequest()
     request["port"] = std::make_shared <bencode::Int> (port);
     request["uploaded"] = std::make_shared <bencode::Int> (uploaded);
     request["downloaded"] = std::make_shared <bencode::Int> (downloaded);
-    request["left"] = std::make_shared <bencode::Int> (left);
+    request["left"] = std::make_shared <bencode::Int> (*length - downloaded);
     request["compact"] = std::make_shared <bencode::Int> (compact);
     request["no_peer_id"] = std::make_shared <bencode::Int> (no_peer_id);
     request["event"] = std::make_shared <bencode::String> (event);

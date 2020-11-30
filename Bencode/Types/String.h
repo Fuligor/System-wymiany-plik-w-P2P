@@ -15,8 +15,12 @@ namespace bencode {
 		String(const String& other);
 		String(const String&& other) noexcept;
 
-		virtual std::string code() const override;
+		String& operator = (const char* value);
+		String& operator = (const wchar_t* value);
+		String& operator = (const std::string& value);
+		String& operator = (const String& other);
 
+		virtual std::string code() const override;
 	private:
 		static std::string to_utf8(wchar_t value);
 	};

@@ -13,7 +13,7 @@ class TrackerRequest
         bencode::Int port;
         bencode::Int uploaded;
         bencode::Int downloaded;
-        bencode::Int* left;
+        bencode::Int* length;
         bool compact;
         bool no_peer_id;
         bencode::String event;
@@ -24,10 +24,9 @@ class TrackerRequest
         void setPort(int po);
         void setUploaded(int up);
         void setDownloaded(int down);
-        void setLeft(int le);
         void setCompact(bool com);
         void setNo_peer_id(bool n_p_id);
         void setEvent(std::string ev);
-        std::string TrackerRequest::getRequest();
+        std::string getRequest();
 
 };
