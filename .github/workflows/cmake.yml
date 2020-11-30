@@ -60,7 +60,8 @@ jobs:
       with:
         name: linux
         path: |
-           ${{runner.workspace}}/build/**
+           ${{runner.workspace}}/build/Client/Client
+           ${{runner.workspace}}/build/Tracker/Tracker
            !**/*.tmp
            
     - name: Create artifacts   
@@ -69,6 +70,6 @@ jobs:
       with:
         name: windows
         path: |
-           ${{runner.workspace}}/build/**
-           !**/*.tmp
+           ${{runner.workspace}}/build/**/*.exe
+           ${{runner.workspace}}/build/**/*.lib
       

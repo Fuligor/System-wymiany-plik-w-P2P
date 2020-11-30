@@ -30,7 +30,7 @@ namespace bencode
 		static List* list_decoder(std::istream& stream);
 		static Dictionary* dict_decoder(std::istream& stream);
 	public:
-		static ICode* decode(std::istream&& stream);
+		static ICode* decode(std::istream& stream);
 		static ICode* decode(const std::string& stream);
 	};
 }
