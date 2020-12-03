@@ -1,47 +1,51 @@
-#include "TorrentFile.h"
-#include <QFileInfo>
-#include <QDateTime>
-#include <QDate>
-#include <QTextStream>
-#include "File.h"
-#include "../Bencode/Bencode.h"
+#include "TrackerResponse.h"
 
-TorrentFile::TorrentFile(std::string fname, std::string Utracker, int pLength)
+TrackerResponse::TrackerResponse(){}
+TrackerResponse::~TrackerResponse(){}
+
+void TrackerResponse::setF_reason(std::string reason)
 {
-    fileName = QString::fromStdString(fname);
-    URLtracker = QString::fromStdString(Utracker);
-    pieceLength = pLength;
-}
-TorrentFile::~TorrentFile(){}
-void TorrentFile::createFile()
-{
-    QFileInfo file(fileName);
-
-    File file2(fileName, pieceLength);
-    bencode::Dict metainfoDict;
-    bencode::Dict infoDict;
-
-    if(file.isFile())
-    {
-        infoDict["piece length"] = std::make_shared <bencode::Int> (pieceLength);
-        infoDict["pieces"] = std::make_shared <bencode::String> (file2.getFragsHash());
-        infoDict["name"] = std::make_shared <bencode::String> (file.fileName());
-        infoDict["length"] = std::make_shared <bencode::Int> (file.size());
-    }
-
-    metainfoDict["info"] = std::make_shared <bencode::Dict> (infoDict);
-    metainfoDict["announce"] = std::make_shared <bencode::String> (URLtracker);
-    QDateTime creation_date = QDateTime::currentDateTime();
-    metainfoDict["creation date"] = std::make_shared <bencode::Int> (creation_date.toTime_t());
-
-    
-    QFile outFile(fileName + ".torrent");
-    if(outFile.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-        QTextStream out(&outFile);
-        out << QString::fromStdString(metainfoDict.code());
-        outFile.close();
-
-    }
+    f_reason = reason;
     return;
+}
+void TrackerResponse::setInterval(int interv)
+{
+    interval = interv;
+    return;
+}
+void TrackerResponse::setTracker_id(std::string tracker)
+{
+    tracker_id = tracker;
+    return;
+}
+void TrackerResponse::setComplete(int com)
+{
+    complete = com;
+    return;
+}
+void TrackerResponse::setIncomplete(int incom)
+{
+    incomplete = incom;
+    return;
+}
+void TrackerResponse::addPeer(std::string peer_id, std::string ip, int port)
+{
+    bencode::Dict dic;
+    dic["peer id"] = std::make_shared <bencode::String> (peer_id);
+    dic["ip"] = std::make_shared <bencode::String> (ip);
+    dic["port"] = std::make_shared <bencode::Int> (port);
+    peers.push_back(std::make_shared <bencode::Dict> (dic));
+    return;
+}
+
+std::string TrackerResponse::getResponse()
+{
+    response["failure reason"] = std::make_shared <bencode::String> (f_reason);
+    response["interval"] = std::make_shared <bencode::Int> (interval);
+    response["tracker id"] = std::make_shared <bencode::String> (tracker_id);
+    response["complete"] = std::make_shared <bencode::Int> (complete);
+    response["incomplete"] = std::make_shared <bencode::Int> (incomplete);
+    response["peers"] = std::make_shared <bencode::List> (peers);
+
+    return response.code();
 }
