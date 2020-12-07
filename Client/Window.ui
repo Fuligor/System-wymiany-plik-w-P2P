@@ -19,7 +19,7 @@
   <property name="windowTitle">
    <string>P2P client</string>
   </property>
-  <widget class="QWidget" name="centralWidget">
+  <widget class="QWidget" name="MainWidget">
    <property name="font">
     <font>
      <pointsize>12</pointsize>
@@ -135,9 +135,7 @@
   <tabstop>ContinueDownload</tabstop>
   <tabstop>Exit</tabstop>
  </tabstops>
- <resources>
-  <include location="Window.qrc"/>
- </resources>
+ <resources/>
  <connections>
   <connection>
    <sender>Exit</sender>
@@ -158,7 +156,7 @@
   <connection>
    <sender>ShareNewFile</sender>
    <signal>clicked()</signal>
-   <receiver>WindowClass</receiver>
+   <receiver>MainWidget</receiver>
    <slot>hide()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -166,8 +164,8 @@
      <y>149</y>
     </hint>
     <hint type="destinationlabel">
-     <x>473</x>
-     <y>-14</y>
+     <x>319</x>
+     <y>239</y>
     </hint>
    </hints>
   </connection>

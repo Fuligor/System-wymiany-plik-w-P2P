@@ -52,7 +52,7 @@ bencode::String* bencode::Decoder::string_decoder(std::istream& stream)
 
 	for (int i = 0; i < size; ++i)
 	{
-		result.append(1, from_utf8(stream));
+		result += from_utf8(stream);
 	}
 
 	if (size != result.size())
@@ -69,6 +69,7 @@ const wchar_t bencode::Decoder::from_utf8(std::istream& stream)
 	unsigned int count = 0;
 
 	unsigned char temp = stream.get();
+
 	if (temp <= 0x7F)
 	{
 		result = temp;
@@ -101,7 +102,7 @@ const wchar_t bencode::Decoder::from_utf8(std::istream& stream)
 	}
 	else
 	{
-		//throw(std::logic_error("Bencode Decoder: Wrong UTF-8 encoding!"));
+		throw(std::logic_error("Bencode Decoder: Wrong UTF-8 encoding!"));
 	}
 
 	for (unsigned int i = 0; i < count; ++i)

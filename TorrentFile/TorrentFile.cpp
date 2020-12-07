@@ -9,7 +9,7 @@
 
 #include "File.h"
 
-TorrentFile::TorrentFile(std::string fname, std::string Utracker, int pLength)
+TorrentFile::TorrentFile(const std::string fname, const std::string Utracker, int pLength)
 {
     fileName = QString::fromStdString(fname);
     URLtracker = QString::fromStdString(Utracker);
@@ -23,28 +23,36 @@ void TorrentFile::createFile()
     File file2(fileName, pieceLength);
     bencode::Dict metainfoDict;
     bencode::Dict infoDict;
+    std::string pieces;
+    bencode::String bpieces;
 
     if(file.isFile())
     {
         infoDict["piece length"] = std::make_shared <bencode::Int> (pieceLength);
+        pieces = file2.getFragsHash();
+        bpieces = file2.getFragsHash();
         infoDict["pieces"] = std::make_shared <bencode::String> (file2.getFragsHash());
         infoDict["name"] = std::make_shared <bencode::String> (file.fileName().toStdString());
         infoDict["length"] = std::make_shared <bencode::Int> (file.size());
     }
+    bencode::String bpieces2(pieces);
+    std::wstring wpieces(pieces.begin(), pieces.end());
 
     metainfoDict["info"] = std::make_shared <bencode::Dict> (infoDict);
-    metainfoDict["announce"] = std::make_shared <bencode::String> (URLtracker.toStdString());
+    std::string urlAddres = URLtracker.toStdString();
+    metainfoDict["announce"] = std::make_shared <bencode::String> (urlAddres);
     QDateTime creation_date = QDateTime::currentDateTime();
     metainfoDict["creation date"] = std::make_shared <bencode::Int> (creation_date.toTime_t());
 
-    
     QFile outFile(fileName + ".torrent");
-    if(outFile.open(QIODevice::WriteOnly | QIODevice::Text))
+    if(outFile.open(QIODevice::WriteOnly))
     {
         QTextStream out(&outFile);
-        out << QString::fromStdString(metainfoDict.code());
+        std::string code = metainfoDict.code();
+        QByteArray buf = QByteArray::fromStdString(code);
+        outFile.write(buf);
         outFile.close();
-
     }
+
     return;
 }

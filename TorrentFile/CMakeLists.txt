@@ -33,3 +33,4 @@ target_include_directories(TorrentFile
 )
 
 target_link_libraries(TorrentFile Qt5::Widgets)
+target_link_libraries(TorrentFile Bencode)

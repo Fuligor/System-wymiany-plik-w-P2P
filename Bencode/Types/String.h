@@ -1,5 +1,7 @@
 #pragma once
 #include <string>
+#include <codecvt>
+
 #include "ICode.h"
 
 namespace bencode {
@@ -21,7 +23,7 @@ namespace bencode {
 		String& operator = (const String& other);
 
 		virtual std::string code() const override;
-	private:
-		static std::string to_utf8(wchar_t value);
+	protected:
+		std::string to_utf8(const wchar_t value) const;
 	};
 }

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Bencode/Bencode.h"
+#include "Bencode.h"
 
 
 
@@ -10,5 +10,5 @@ class torrentReader{
         torrentReader(std::string fileName);
         ~torrentReader();
         bencode::Dict *getDict();
-
+        bencode::Dict *getInfoDict();
 };
