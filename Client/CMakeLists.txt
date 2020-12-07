@@ -16,9 +16,15 @@ find_package(Qt5 COMPONENTS Network REQUIRED)
 
 set(SOURCES 
 	"main.cpp" 
+        "Client.cpp"
+        "Client.h"
 	"ShareFileWindow.cpp"
-	"ShareFileWindow.h"
-	"ShareFileWindow.ui"
+        "ShareFileWindow.h"
+        "ShareFileWindow.ui"
+#        "SocketManager.cpp"
+#        "SocketManager.h"
+        "TrackerConnection.cpp"
+        "TrackerConnection.h"
 	"Window.cpp" 
 	"Window.h"
 	"Window.ui"
@@ -30,8 +36,13 @@ add_executable (Client ${SOURCES})
 target_include_directories(Client
           PUBLIC "${PROJECT_SOURCE_DIR}/Bencode"
 )
+target_include_directories(Client
+          PUBLIC "${PROJECT_SOURCE_DIR}/TorrentFile"
+)
 
 install(TARGETS Client DESTINATION bin)
 
+target_link_libraries(Client Bencode)
+target_link_libraries(Client TorrentFile)
 target_link_libraries(Client Qt5::Widgets)
 target_link_libraries(Client Qt5::Network)

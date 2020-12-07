@@ -11,7 +11,6 @@ File::File(const QString& name, const size_t& fragSize, QObject* parent)
 	:mFile(new QFile(name, this)), QObject(parent), mFragSize(fragSize)
 {
 	mFile->open(QIODevice::ReadOnly);
-
 	unsigned int fragCount = ceil((double) mFile->size() / mFragSize);
 	mFileFragments.reserve(fragCount);
 

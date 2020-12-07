@@ -5,11 +5,8 @@ bencode::String::String()
 {}
 
 bencode::String::String(const char* const ptr)
-	: std::wstring()
-{
-	resize(std::char_traits<char>::length(ptr));
-	mbstowcs(&(*this)[0], ptr, size());
-}
+	: String(std::string(ptr))
+{}
 
 bencode::String::String(const wchar_t* const ptr)
 	: std::wstring(ptr)
@@ -17,11 +14,15 @@ bencode::String::String(const wchar_t* const ptr)
 }
 
 bencode::String::String(const std::string& other)
-	: String(other.c_str())
-{}
+{
+	for(unsigned char i: other)
+	{
+		push_back(i);
+	}
+}
 
 bencode::String::String(const std::wstring& other)
-	: String(other.c_str())
+	: std::wstring(other)
 {
 }
 
@@ -49,7 +50,7 @@ bencode::String& bencode::String::operator=(const wchar_t* value)
 
 bencode::String& bencode::String::operator=(const std::string& value)
 {
-	*this = String(value.c_str());
+	*this = String(value);
 
 	return *this;
 }
@@ -68,58 +69,61 @@ std::string bencode::String::code() const
 	result = std::to_string(size());
 	result += ":";
 
-	for (const wchar_t& i: *this)
+	for (size_t i = 0; i < size(); ++i)
 	{
-		result += to_utf8(i);
+		result += to_utf8((*this)[i]);
 	}
 
 	return result;
 }
 
-std::string bencode::String::to_utf8(const wchar_t value)
+std::string bencode::String::to_utf8(const wchar_t value) const
 {
 	wchar_t temp = value;
 	unsigned int count = 1;
-	std::string result = " ";
+	std::string result;
+	unsigned char mask = 0;
 
 	if (temp <= 0x7F)
 	{
 		count = 1;
-		result[0] = (char) 0;
+		mask = (unsigned char) 0;
 	}
 	else if (temp <= 0x7FF)
 	{
 		count = 2;
-		result[0] = (char) 0xC0;
+		mask = (unsigned char) 0xC0;
 	}
 	else if (temp <= 0xFFFF)
 	{
 		count = 3;
-		result[0] = (char) 0xE0;
+		mask = (unsigned char) 0xE0;
 	}
 	else if (temp <= 0x1FFFFF)
 	{
 		count = 4;
-		result[0] = (char) 0xF0;
+		mask = (unsigned char) 0xF0;
 	}
 	else if (temp <= 0x3FFFFFF)
 	{
-		count = 5; 
-		result[0] = (char) 0xF8;
+		count = 5;
+		mask = (unsigned char) 0xF8;
 	}
 	else if (temp <= 0x7FFFFFFF)
 	{
 		count = 6;
-		result[0] = (char) 0xFC;
+		mask = (unsigned char) 0xFC;
 	}
 
 	for (unsigned int i = count - 1; i > 0; --i)
 	{
-		result.append(1, 0x80 + (temp & 0x3F));
+		result.push_back(0x80 + (temp & 0x3F));
 		temp = temp >> 6;
 	}
 
-	result[0] += (unsigned char)temp;
+	result.push_back((unsigned char) temp + mask);
+
+	result = std::string(result.rbegin(), result.rend());
 
 	return result;
 }
