@@ -1,5 +1,7 @@
 #include "TrackerRequest.h"
 
+#include <iostream>
+
 TrackerRequest::TrackerRequest(bencode::Dict* torrentDict)
 {
     bencode::Dict &tmp = *torrentDict;
@@ -83,5 +85,8 @@ std::string TrackerRequest::getRequest()
     {
         request["trackerid"] = trackerId;
     }
+
+    std::cout << request.code() << std::endl;
+
     return request.code();
 }

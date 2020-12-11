@@ -20,6 +20,7 @@ private:
     QTimer* requestTimer;
     torrentReader torrent;
     TrackerRequest request;
+    bool isActive = false;
 public:
     TrackerConnection(const std::string& fileName);
     ~TrackerConnection();

@@ -4,7 +4,11 @@ torrentReader::torrentReader(std::string fileName)
 {
     std::ifstream inFile(fileName, std::ios::binary);
 
-    readDict = dynamic_cast <bencode::Dict*> (bencode::Decoder::decode(inFile));
+    bencode::Utf8Decoder utfDecoder;
+    std::wstring string = utfDecoder.decode(inFile);
+
+    bencode::Decoder decoder;
+    readDict = dynamic_cast <bencode::Dict*> (decoder.decode(string));
 }
 
 torrentReader::~torrentReader(){}

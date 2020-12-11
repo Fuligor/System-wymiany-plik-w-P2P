@@ -15,6 +15,7 @@ set(TYPES_SOURCES
 	"Types/Int.h"
 	"Types/List.cpp"
 	"Types/List.h"
+	"Types/Type.h"
 )
 
 set(CODERS_SOURCES
@@ -22,6 +23,10 @@ set(CODERS_SOURCES
 	"Coders/Encoder.h"
 	"Coders/Decoder.cpp"
 	"Coders/Decoder.h"
+	"Coders/Exception.h"
+	"Coders/Exception.cpp"
+	"Coders/Utf8Decoder.h" 
+	"Coders/Utf8Decoder.cpp"
 )
 
 add_library (Bencode "Bencode.h" "Coders.h" "Types.h" ${TYPES_SOURCES} ${CODERS_SOURCES})

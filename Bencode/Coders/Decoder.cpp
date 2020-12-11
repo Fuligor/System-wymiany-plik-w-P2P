@@ -5,125 +5,66 @@
 
 #include "../Types.h"
 
-bencode::Decoder::type bencode::Decoder::decode_type(const char& value)
+bencode::Type bencode::Decoder::decode_type(const char& value)
 {
 	switch (value)
 	{
 	case 'i':
-		return type::INT;
+		return Type::INT;
 	case 'l':
-		return type::LIST;
+		return Type::LIST;
 	case 'd':
-		return type::DICT;
+		return Type::DICT;
 	case 'e':
-		return type::END;
+		return Type::END;
 	default:
 		if (isdigit(value))
 		{
-			return type::STR;
+			return Type::STR;
 		}
 		else
 		{
-			return type::UNKNOWN;
+			return Type::UNKNOWN;
 		}
 	}
 }
 
-bencode::Int* bencode::Decoder::int_decoder(std::istream& stream)
+bencode::Int* bencode::Decoder::int_decoder(std::wistream& stream)
 {
-	std::string buf;
+	std::wstring buf;
 
-	std::getline(stream, buf, 'e');
+	std::getline(stream, buf, L'e');
 
 	return new Int(std::stoi(buf));
 }
-bencode::String* bencode::Decoder::string_decoder(std::istream& stream)
+
+bencode::String* bencode::Decoder::string_decoder(std::wistream& stream)
 {
 	size_t size;
-	std::string buf;
+	std::wstring buf;
 
 	stream.unget();
 
-	getline(stream, buf, ':');
+	std::getline(stream, buf, L':');
 
 	size = std::stoi(buf);
-	
-	std::wstring result;
 
-	for (int i = 0; i < size; ++i)
+	buf.resize(size);
+
+	stream.read(&buf[0], size);
+
+	if(stream.gcount() < size)
 	{
-		result += from_utf8(stream);
+		throw(Exception::end_of_file());
 	}
 
-	if (size != result.size())
-	{
-		throw(std::logic_error("Bencode Decoder: Wrong UTF-8 encoding!"));
-	}
-
-	return new String(result);
+	return new String(buf);
 }
 
-const wchar_t bencode::Decoder::from_utf8(std::istream& stream)
-{
-	wchar_t result = 0;
-	unsigned int count = 0;
-
-	unsigned char temp = stream.get();
-
-	if (temp <= 0x7F)
-	{
-		result = temp;
-		count = 0;
-	}
-	else if (temp <= 0xDF)
-	{
-		result = temp & 0x1F;
-		count = 1;
-	}
-	else if (temp <= 0xEF)
-	{
-		result = temp & 0xF;
-		count = 2;
-	}
-	else if (temp <= 0xF7)
-	{
-		result = temp & 0x7;
-		count = 3;
-	}
-	else if (temp <= 0xFB)
-	{
-		result = temp & 0x3;
-		count = 4;
-	}
-	else if (temp <= 0xFD)
-	{
-		result = temp & 0x1;
-		count = 5;
-	}
-	else
-	{
-		throw(std::logic_error("Bencode Decoder: Wrong UTF-8 encoding!"));
-	}
-
-	for (unsigned int i = 0; i < count; ++i)
-	{
-		temp = stream.get();
-
-		if (temp < 0x80)
-		{
-			throw(std::logic_error("Bencode Decoder: Wrong UTF-8 encoding!"));
-		}
-
-		result = (result << 6) + (temp & 0x3F);
-	}
-
-	return result;
-}
-
-bencode::List* bencode::Decoder::list_decoder(std::istream& stream)
+bencode::List* bencode::Decoder::list_decoder(std::wistream& stream)
 {
 	List* list = new List();
-	
+
 	while (true)
 	{
 		std::shared_ptr <ICode> temp(decode(stream));
@@ -138,21 +79,22 @@ bencode::List* bencode::Decoder::list_decoder(std::istream& stream)
 
 	return list;
 }
-bencode::Dictionary* bencode::Decoder::dict_decoder(std::istream& stream)
+
+bencode::Dictionary* bencode::Decoder::dict_decoder(std::wistream& stream)
 {
 	Dictionary* dict = new Dict();
 
 	while (true)
 	{
-		type decoded_type = decode_type(stream.get());
+		Type decoded_type = decode_type(stream.get());
 
-		if (decoded_type == type::END)
+		if (decoded_type == Type::END)
 		{
 			break;
 		}
-		else if (decoded_type != type::STR)
+		else if (decoded_type != Type::STR)
 		{
-			throw std::domain_error("Bencode Decoder: Expected string key!");
+			throw std::domain_error("Bencode FileDecoder: Expected string key!");
 		}
 
 		std::shared_ptr <String> key(string_decoder(stream));
@@ -164,35 +106,47 @@ bencode::Dictionary* bencode::Decoder::dict_decoder(std::istream& stream)
 	return dict;
 }
 
-bencode::ICode* bencode::Decoder::decode(std::istream& stream)
+bencode::ICode* bencode::Decoder::decode(std::wistream& stream)
 {
 	ICode* result = nullptr;
 
-	type decoded_type = decode_type(stream.get());
-
-	switch (decoded_type)
+	try
 	{
-	case type::INT:
-		result = int_decoder(stream);
-		break;
-	case type::STR:
-		result = string_decoder(stream);
-		break;
-	case type::LIST:
-		result = list_decoder(stream);
-		break;
-	case type::DICT:
-		result = dict_decoder(stream);
-		break;
-	case type::UNKNOWN:
-		throw std::domain_error("Bencode Decoder: Wrong value type!");
-	}
+		Type decoded_type = decode_type(stream.get());
 
-	return result;
+		switch (decoded_type)
+		{
+		case Type::INT:
+			result = int_decoder(stream);
+			break;
+		case Type::STR:
+			result = string_decoder(stream);
+			break;
+		case Type::LIST:
+			result = list_decoder(stream);
+			break;
+		case Type::DICT:
+			result = dict_decoder(stream);
+			break;
+		case Type::UNKNOWN:
+			throw std::domain_error("Bencode FileDecoder: Wrong value type!");
+		}
+
+		return result;
+	}
+	catch (Exception::end_of_file e)
+	{
+		if (result != nullptr)
+		{
+			delete[] result;
+		}
+
+		throw(e);
+	}
 }
 
-bencode::ICode* bencode::Decoder::decode(const std::string& string)
+bencode::ICode* bencode::Decoder::decode(const std::wstring& string)
 {
-	std::istringstream  stream(string);
+	std::wistringstream stream(string);
 	return decode(stream);
 }

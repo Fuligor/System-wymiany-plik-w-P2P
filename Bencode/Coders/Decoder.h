@@ -1,7 +1,8 @@
 #pragma once
 #include <iostream>
 #include <string>
-#include <memory>
+
+#include "Exception.h"
 
 namespace bencode
 {
@@ -11,26 +12,18 @@ namespace bencode
 	class List;
 	class Dictionary;
 
+	enum class Type;
+
 	class Decoder
 	{
-		enum class type {
-			INT,
-			STR,
-			LIST,
-			DICT,
-			END,
-			UNKNOWN
-		};
-
-	private:
-		static type decode_type(const char& value);
-		static Int* int_decoder(std::istream& stream);
-		static String* string_decoder(std::istream& stream);
-		static const wchar_t from_utf8(std::istream& stream);
-		static List* list_decoder(std::istream& stream);
-		static Dictionary* dict_decoder(std::istream& stream);
+	protected:
+		virtual Type decode_type(const char& value);
+		virtual Int* int_decoder(std::wistream& stream);
+		virtual String* string_decoder(std::wistream& stream);
+		virtual List* list_decoder(std::wistream& stream);
+		virtual Dictionary* dict_decoder(std::wistream& stream);
 	public:
-		static ICode* decode(std::istream& stream);
-		static ICode* decode(const std::string& stream);
+		virtual ICode* decode(std::wistream& stream);
+		virtual ICode* decode(const std::wstring& string);
 	};
 }
