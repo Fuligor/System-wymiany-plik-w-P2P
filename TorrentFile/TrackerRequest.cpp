@@ -86,7 +86,5 @@ std::string TrackerRequest::getRequest()
         request["trackerid"] = trackerId;
     }
 
-    std::cout << request.code() << std::endl;
-
     return request.code();
 }

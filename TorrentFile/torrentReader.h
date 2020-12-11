@@ -1,8 +1,6 @@
 #pragma once
 #include "Bencode.h"
 
-
-
 class torrentReader{
     private:
         bencode::Dict *readDict;

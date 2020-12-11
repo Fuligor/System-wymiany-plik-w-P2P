@@ -48,7 +48,6 @@ bencode::String* bencode::Decoder::string_decoder(std::wistream& stream)
 	std::getline(stream, buf, L':');
 
 	size = std::stoi(buf);
-
 	buf.resize(size);
 
 	stream.read(&buf[0], size);
