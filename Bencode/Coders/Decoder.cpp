@@ -1,9 +1,22 @@
 #include "Decoder.h"
 
-#include <sstream>
-#include <stdexcept>
-
 #include "../Types.h"
+
+std::wstring bencode::Decoder::getline(const std::wstring& string, const std::wstring& delim)
+{
+	std::wstring result;
+	int find = string.find(delim, position);
+
+	if(find == std::wstring::npos)
+	{
+		throw(Exception::end_of_file());
+	}
+
+	result = string.substr(position, find - position);
+	position = find + 1;
+
+	return result;
+}
 
 bencode::Type bencode::Decoder::decode_type(const char& value)
 {
@@ -29,44 +42,43 @@ bencode::Type bencode::Decoder::decode_type(const char& value)
 	}
 }
 
-bencode::Int* bencode::Decoder::int_decoder(std::wistream& stream)
+bencode::Int* bencode::Decoder::int_decoder(const std::wstring& string)
 {
 	std::wstring buf;
 
-	std::getline(stream, buf, L'e');
+	buf = getline(string, L"e");
 
 	return new Int(std::stoi(buf));
 }
 
-bencode::String* bencode::Decoder::string_decoder(std::wistream& stream)
+bencode::String* bencode::Decoder::string_decoder(const std::wstring& string)
 {
 	size_t size;
 	std::wstring buf;
 
-	stream.unget();
-
-	std::getline(stream, buf, L':');
+	buf = getline(string, L":");
 
 	size = std::stoi(buf);
-	buf.resize(size);
 
-	stream.read(&buf[0], size);
+	buf = string.substr(position, size);
 
-	if(stream.gcount() < size)
+	if (buf.size() < size)
 	{
 		throw(Exception::end_of_file());
 	}
 
+	position += size;
+
 	return new String(buf);
 }
 
-bencode::List* bencode::Decoder::list_decoder(std::wistream& stream)
+bencode::List* bencode::Decoder::list_decoder(const std::wstring& string)
 {
 	List* list = new List();
 
 	while (true)
 	{
-		std::shared_ptr <ICode> temp(decode(stream));
+		std::shared_ptr <ICode> temp(core_decoder(string));
 
 		if (temp == nullptr)
 		{
@@ -79,13 +91,13 @@ bencode::List* bencode::Decoder::list_decoder(std::wistream& stream)
 	return list;
 }
 
-bencode::Dictionary* bencode::Decoder::dict_decoder(std::wistream& stream)
+bencode::Dictionary* bencode::Decoder::dict_decoder(const std::wstring& string)
 {
 	Dictionary* dict = new Dict();
 
 	while (true)
 	{
-		Type decoded_type = decode_type(stream.get());
+		Type decoded_type = decode_type(string[position]);
 
 		if (decoded_type == Type::END)
 		{
@@ -96,8 +108,8 @@ bencode::Dictionary* bencode::Decoder::dict_decoder(std::wistream& stream)
 			throw std::domain_error("Bencode FileDecoder: Expected string key!");
 		}
 
-		std::shared_ptr <String> key(string_decoder(stream));
-		std::shared_ptr <ICode> value(decode(stream));
+		std::shared_ptr <String> key(string_decoder(string));
+		std::shared_ptr <ICode> value(core_decoder(string));
 
 		(*dict)[*key] = value;
 	}
@@ -105,31 +117,47 @@ bencode::Dictionary* bencode::Decoder::dict_decoder(std::wistream& stream)
 	return dict;
 }
 
-bencode::ICode* bencode::Decoder::decode(std::wistream& stream)
+bencode::ICode* bencode::Decoder::core_decoder(const std::wstring& string)
+{
+	ICode* result = nullptr;
+
+	Type decoded_type = decode_type(string[position]);
+
+	switch (decoded_type)
+	{
+	case Type::INT:
+		++position;
+		result = int_decoder(string);
+		break;
+	case Type::STR:
+		result = string_decoder(string);
+		break;
+	case Type::LIST:
+		++position;
+		result = list_decoder(string);
+		break;
+	case Type::DICT:
+		++position;
+		result = dict_decoder(string);
+		break;
+	case Type::UNKNOWN:
+		throw std::domain_error("Bencode FileDecoder: Wrong value type!");
+	}
+
+	return result;
+}
+
+bencode::ICode* bencode::Decoder::decode(std::wstring& string)
 {
 	ICode* result = nullptr;
 
 	try
 	{
-		Type decoded_type = decode_type(stream.get());
+		position = 0;
 
-		switch (decoded_type)
-		{
-		case Type::INT:
-			result = int_decoder(stream);
-			break;
-		case Type::STR:
-			result = string_decoder(stream);
-			break;
-		case Type::LIST:
-			result = list_decoder(stream);
-			break;
-		case Type::DICT:
-			result = dict_decoder(stream);
-			break;
-		case Type::UNKNOWN:
-			throw std::domain_error("Bencode FileDecoder: Wrong value type!");
-		}
+		result = core_decoder(string);
+
+		string = string.substr(position);
 
 		return result;
 	}
@@ -138,14 +166,11 @@ bencode::ICode* bencode::Decoder::decode(std::wistream& stream)
 		if (result != nullptr)
 		{
 			delete[] result;
+
+			result = nullptr;
 		}
 
 		throw(e);
 	}
 }
 
-bencode::ICode* bencode::Decoder::decode(const std::wstring& string)
-{
-	std::wistringstream stream(string);
-	return decode(stream);
-}

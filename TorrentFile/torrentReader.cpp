@@ -1,5 +1,8 @@
 #include "torrentReader.h"
 #include <fstream>
+
+#include <iostream>
+
 torrentReader::torrentReader(std::string fileName)
 {
     std::ifstream inFile(fileName, std::ios::binary);
@@ -9,6 +12,8 @@ torrentReader::torrentReader(std::string fileName)
 
     bencode::Decoder decoder;
     readDict = dynamic_cast <bencode::Dict*> (decoder.decode(string));
+
+    std::cerr << readDict->code() << std::endl;
 }
 
 torrentReader::~torrentReader(){}
