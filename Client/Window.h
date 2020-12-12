@@ -3,7 +3,7 @@
 #include <QtWidgets/QMainWindow>
 #include "ui_Window.h"
 
-#include "client.h"
+#include "Client.h"
 #include "ShareFileWindow.h"
 
 class Window : public QMainWindow

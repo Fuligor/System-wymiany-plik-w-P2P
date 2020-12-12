@@ -4,7 +4,7 @@
 #include <QObject>
 #include <QMutex>
 
-#include "trackerconnection.h"
+#include "TrackerConnection.h"
 
 class Client : public QObject
 {

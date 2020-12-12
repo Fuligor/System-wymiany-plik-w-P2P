@@ -107,5 +107,7 @@ std::wstring bencode::Utf8Decoder::decode(std::istream& stream)
 
 std::wstring bencode::Utf8Decoder::decode(std::string string)
 {
-	return decode(std::istringstream(string));
+	std::istringstream stream(string);
+
+	return decode(stream);
 }

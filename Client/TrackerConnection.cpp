@@ -1,4 +1,4 @@
-#include "trackerconnection.h"
+#include "TrackerConnection.h"
 
 #include <QTcpSocket>
 #include <QTimer>

@@ -2,7 +2,7 @@
 #include <QtWidgets/QApplication>
 #include <QString>
 
-#include "client.h"
+#include "Client.h"
 
 #include "TorrentFile.h"
 

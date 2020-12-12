@@ -14,6 +14,12 @@ find_package(Threads REQUIRED)
 
 set(SOURCES 
 	"main.cpp"
+    "Server.cpp"
+    "Server.h"
+    "Connection.cpp"
+    "Connection.h"
+    "TrackerResponse.cpp"
+    "TrackerResponse.h"
 )
 
 add_executable (Tracker ${SOURCES})
@@ -23,5 +29,4 @@ target_include_directories(Tracker
 )
 
 target_link_libraries(Tracker PRIVATE Threads::Threads)
-
-install(TARGETS Tracker DESTINATION bin)
+target_link_libraries(Tracker PRIVATE Bencode)

@@ -8,6 +8,12 @@ void TrackerResponse::setF_reason(std::string reason)
     f_reason = reason;
     return;
 }
+
+void TrackerResponse::resetF_reason()
+{
+    f_reason.clear();
+    return;
+}
 void TrackerResponse::setInterval(int interv)
 {
     interval = interv;
@@ -38,9 +44,14 @@ void TrackerResponse::addPeer(std::string peer_id, std::string ip, int port)
     return;
 }
 
-std::string TrackerResponse::getResponse()
+std::string TrackerResponse::getResponse() const
 {
-    response["failure reason"] = std::make_shared <bencode::String> (f_reason);
+    bencode::Dict response;
+
+    if(f_reason.size() > 0)
+    {
+        response["failure reason"] = std::make_shared <bencode::String> (f_reason);
+    }
     response["interval"] = std::make_shared <bencode::Int> (interval);
     response["tracker id"] = std::make_shared <bencode::String> (tracker_id);
     response["complete"] = std::make_shared <bencode::Int> (complete);

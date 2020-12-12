@@ -101,6 +101,7 @@ bencode::Dictionary* bencode::Decoder::dict_decoder(const std::wstring& string)
 
 		if (decoded_type == Type::END)
 		{
+			position++;
 			break;
 		}
 		else if (decoded_type != Type::STR)
