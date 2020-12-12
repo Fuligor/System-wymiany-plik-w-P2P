@@ -16,14 +16,17 @@ namespace bencode
 
 	class Decoder
 	{
+	private:
+		size_t position;
 	protected:
+		std::wstring getline(const std::wstring& string, const std::wstring& delim = L"\n");
 		virtual Type decode_type(const char& value);
-		virtual Int* int_decoder(std::wistream& stream);
-		virtual String* string_decoder(std::wistream& stream);
-		virtual List* list_decoder(std::wistream& stream);
-		virtual Dictionary* dict_decoder(std::wistream& stream);
+		virtual Int* int_decoder(const std::wstring& string);
+		virtual String* string_decoder(const std::wstring& string);
+		virtual List* list_decoder(const std::wstring& string);
+		virtual Dictionary* dict_decoder(const std::wstring& string);
+		virtual ICode* core_decoder(const std::wstring& string);
 	public:
-		virtual ICode* decode(std::wistream& stream);
-		virtual ICode* decode(const std::wstring& string);
+		virtual ICode* decode(std::wstring& string);
 	};
 }
