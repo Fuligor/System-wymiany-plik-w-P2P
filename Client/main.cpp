@@ -4,6 +4,7 @@
 
 #include "Client.h"
 
+#include "TorrentDownloader.h"
 #include "TorrentFile.h"
 
 int main(int argc, char *argv[])
@@ -16,7 +17,7 @@ int main(int argc, char *argv[])
     file->createFile();
     delete file;
 
-    TrackerConnection connection("Client.exe.torrent");
+    TorrentDownloader downloader("Client.exe.torrent");
 
     Window w;
     w.show();

@@ -82,6 +82,7 @@ bencode::List* bencode::Decoder::list_decoder(const std::wstring& string)
 
 		if (temp == nullptr)
 		{
+			++position;
 			break;
 		}
 
@@ -101,7 +102,7 @@ bencode::Dictionary* bencode::Decoder::dict_decoder(const std::wstring& string)
 
 		if (decoded_type == Type::END)
 		{
-			position++;
+			++position;
 			break;
 		}
 		else if (decoded_type != Type::STR)

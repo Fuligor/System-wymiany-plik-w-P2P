@@ -14,6 +14,7 @@ namespace bencode
 		Int(const Int& other);
 		Int(Int&& other) noexcept;
 
+		int getValue() const;
 		virtual std::string code() const;
 
 		Int& operator = (const int& value);

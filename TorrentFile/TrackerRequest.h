@@ -6,16 +6,15 @@
 
 class TrackerRequest
 {
-    private: 
-        bencode::Dict request;
+    private:
         std::shared_ptr <bencode::Dict> info;
-        bencode::String peer_id;
-        bencode::Int port;
-        bencode::Int uploaded;
-        bencode::Int downloaded;
-        bencode::Int* length;
-        bool compact;
-        bool no_peer_id;
+        std::shared_ptr <bencode::String> peer_id;
+        std::shared_ptr <bencode::Int> port;
+        std::shared_ptr <bencode::Int> uploaded;
+        std::shared_ptr <bencode::Int> downloaded;
+        std::shared_ptr <bencode::Int> length;
+        std::shared_ptr <bencode::Int> compact;
+        std::shared_ptr <bencode::Int> no_peer_id;
         std::shared_ptr <bencode::String> event;
         std::shared_ptr <bencode::String> trackerId;
     public:
@@ -30,5 +29,6 @@ class TrackerRequest
         void setEvent(std::string ev);
         void resetEvent();
         void setTrackerId(std::string id);
+        void resetTrackerId();
         std::string getRequest();
 };

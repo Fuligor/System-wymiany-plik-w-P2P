@@ -17,6 +17,11 @@ bencode::Int::Int(Int&& other) noexcept
 {
 }
 
+int bencode::Int::getValue() const
+{
+	return mValue;
+}
+
 std::string bencode::Int::code() const
 {
 	std::string result = "i";

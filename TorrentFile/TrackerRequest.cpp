@@ -6,46 +6,48 @@ TrackerRequest::TrackerRequest(bencode::Dict* torrentDict)
 {
     bencode::Dict &tmp = *torrentDict;
     info.reset(dynamic_cast <bencode::Dict*> (tmp["info"].get()));
-    peer_id = "";
-    port = 0;
-    uploaded = 0;
-    downloaded = 0;
-    length = dynamic_cast <bencode::Int*> ((*info.get())["length"].get());
-    compact = false;
-    no_peer_id = false;
-    event.reset();
+    peer_id.reset(new bencode::String());
+    port.reset(new bencode::Int());
+    uploaded.reset(new bencode::Int());
+    downloaded.reset(new bencode::Int());
+    length.reset(dynamic_cast <bencode::Int*> ((*info)["length"].get()));
+    compact.reset(new bencode::Int());
+    no_peer_id.reset(new bencode::Int());
 }
 
-TrackerRequest::~TrackerRequest(){}
+TrackerRequest::~TrackerRequest()
+{
+    
+}
 
 void TrackerRequest::setPeer_id(std::string p_id)
 {
-    peer_id = p_id;
+    peer_id.reset(new bencode::String(p_id));
     return;
 }
 void TrackerRequest::setPort(int po)
 {
-    port = po;
+    port.reset(new bencode::Int(po));
     return;
 }
 void TrackerRequest::setUploaded(int up)
 {
-    uploaded = up;
+    uploaded.reset(new bencode::Int(up));
     return;
 }
 void TrackerRequest::setDownloaded(int down)
 {
-    downloaded = down;
+    downloaded.reset(new bencode::Int(down));
     return;
 }
 void TrackerRequest::setCompact(bool com)
 {
-    compact = com;
+    compact.reset(new bencode::Int(com));
     return;
 }
 void TrackerRequest::setNo_peer_id(bool n_p_id)
 {
-    no_peer_id = n_p_id;
+    no_peer_id.reset(new bencode::Int(n_p_id));
     return;
 }
 void TrackerRequest::setEvent(std::string ev)
@@ -57,6 +59,7 @@ void TrackerRequest::setEvent(std::string ev)
 void TrackerRequest::resetEvent()
 {
     event.reset();
+
     return;
 }
 
@@ -66,22 +69,30 @@ void TrackerRequest::setTrackerId(std::string id)
     return;
 }
 
+void TrackerRequest::resetTrackerId()
+{
+    trackerId.reset();
+    return;
+}
+
 std::string TrackerRequest::getRequest()
 {
-    request["info_hash"] = std::make_shared <bencode::String> (QCryptographicHash::hash(QByteArray::fromStdString(info.get()->code()), QCryptographicHash::Sha1));
-    request["peer_id"] = std::make_shared <bencode::String> (peer_id);
-    request["port"] = std::make_shared <bencode::Int> (port);
-    request["uploaded"] = std::make_shared <bencode::Int> (uploaded);
-    request["downloaded"] = std::make_shared <bencode::Int> (downloaded);
-    request["left"] = std::make_shared <bencode::Int> (*length - downloaded);
-    request["compact"] = std::make_shared <bencode::Int> (compact);
-    request["no_peer_id"] = std::make_shared <bencode::Int> (no_peer_id);
+    bencode::Dict request;
 
-    if(event)
+    request["info_hash"] = std::make_shared <bencode::String> (QCryptographicHash::hash(QByteArray::fromStdString(info->code()), QCryptographicHash::Sha1));
+    request["peer_id"] = peer_id;
+    request["port"] = port;
+    request["uploaded"] = uploaded;
+    request["downloaded"] = downloaded;
+    request["left"] = std::make_shared <bencode::Int> (*length - *downloaded);
+    request["compact"] = compact;
+    request["no_peer_id"] = no_peer_id;
+
+    if(event != nullptr)
     {
         request["event"] = event;
     }
-    if(trackerId)
+    if(trackerId != nullptr)
     {
         request["trackerid"] = trackerId;
     }

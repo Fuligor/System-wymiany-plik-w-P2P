@@ -12,11 +12,14 @@ class Client : public QObject
 private:
     static Client* sigleInstance;
     static QMutex mutex;
-    TrackerConnection *connection;
+    const std::string myId;
 
-    explicit Client();
+    Client();
+protected:
+    const std::string createId();
 public:
     static Client *getInstance();
+    const std::string& getId() const;
 };
 
 #endif // CLIENT_H

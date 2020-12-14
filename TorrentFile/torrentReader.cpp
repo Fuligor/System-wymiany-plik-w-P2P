@@ -12,8 +12,6 @@ torrentReader::torrentReader(std::string fileName)
 
     bencode::Decoder decoder;
     readDict = dynamic_cast <bencode::Dict*> (decoder.decode(string));
-
-    std::cerr << readDict->code() << std::endl;
 }
 
 torrentReader::~torrentReader(){}

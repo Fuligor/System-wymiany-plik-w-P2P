@@ -18,6 +18,7 @@ set(SOURCES
 	"File.cpp"
 	"FileFrag.h"
 	"FileFrag.cpp" 
+	"Peer.h"
 	"TorrentFile.h"
 	"TorrentFile.cpp"
 	"torrentReader.h"

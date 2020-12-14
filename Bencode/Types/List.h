@@ -7,7 +7,7 @@
 namespace bencode
 {
 	class List
-		:public ICode, public std::list <std::shared_ptr <ICode> >
+		:public ICode, public std::list < std::shared_ptr <ICode> >
 	{
 	public:
 		virtual std::string code() const override;

@@ -8,6 +8,7 @@ TrackerConnection::TrackerConnection(const std::string &fileName)
 {
     connect(socket, SIGNAL(connected()), this, SLOT(start()));
     connect(requestTimer, SIGNAL(timeout()), this, SLOT(interval()));
+    connect(socket, SIGNAL(readyRead()), this, SLOT(read()));
 
     connectToTracker();
     initRequest();
@@ -77,5 +78,45 @@ void TrackerConnection::interval()
 
 void TrackerConnection::read()
 {
+    QByteArray toRead;
+    toRead = socket->readAll();
 
+    buf += utf8decoder.decode(toRead.toStdString());
+
+    decodeResponse();
+}
+
+void TrackerConnection::decodeResponse()
+{
+    bencode::Dict* response;
+
+    try
+    {
+        response = dynamic_cast <bencode::Dict*> (decoder.decode(buf));
+
+        if (response == nullptr)
+        {
+            return;
+        }
+
+        std::cout << response->code() << std::endl;
+
+        bencode::Int* interval = dynamic_cast <bencode::Int*> (response->at(L"interval").get());
+
+        if (interval != nullptr)
+        {
+            requestTimer->setInterval(interval->getValue() * 1000);
+            requestTimer->start();
+        }
+    }
+    catch(bencode::Exception::end_of_file())
+    {
+        return;
+    }
+    catch(std::exception e)
+    {
+        std::cerr << e.what() << std::endl;
+
+        return;
+    }
 }
