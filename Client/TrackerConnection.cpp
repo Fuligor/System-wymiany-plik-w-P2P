@@ -5,12 +5,12 @@
 
 #include "Client.h"
 
-TrackerConnection::TrackerConnection(const std::string& fileName)
-	:socket(new QTcpSocket(this)), requestTimer(new QTimer(this)), mutex(new QMutex()), inActiveState(new QWaitCondition()), torrent(fileName), request(torrent.getDict())
+TrackerConnection::TrackerConnection(const std::string& fileName, QObject* parent)
+	:QObject(parent), socket(new QTcpSocket(this)), requestTimer(new QTimer(this)), mutex(new QMutex()), inActiveState(new QWaitCondition()), torrent(fileName), request(torrent.getDict())
 {
-	connect(socket, SIGNAL(connected()), this, SLOT(start()));
+	connect(socket, SIGNAL(connected()), this, SLOT(startRequest()));
 	connect(requestTimer, SIGNAL(timeout()), this, SLOT(interval()));
-	connect(socket, SIGNAL(readyRead()), this, SLOT(read()));
+	connect(socket, SIGNAL(readyRead()), this, SLOT(stopRequest()));
 
 	requestTimer->setSingleShot(true);
 	currentState = State::INIT;

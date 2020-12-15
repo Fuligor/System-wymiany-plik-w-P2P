@@ -42,7 +42,7 @@ private:
     bool isUpdateSheduled;
     bool isTimerTimeouted;
 public:
-    TrackerConnection(const std::string& fileName);
+    TrackerConnection(const std::string& fileName, QObject* parent = nullptr);
     ~TrackerConnection();
 protected:
     void initRequest();
