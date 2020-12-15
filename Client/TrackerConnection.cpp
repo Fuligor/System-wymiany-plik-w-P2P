@@ -3,120 +3,221 @@
 #include <QTcpSocket>
 #include <QTimer>
 
-TrackerConnection::TrackerConnection(const std::string &fileName)
-    :socket(new QTcpSocket(this)), requestTimer(new QTimer(this)), torrent(fileName), request(torrent.getDict())
-{
-    connect(socket, SIGNAL(connected()), this, SLOT(start()));
-    connect(requestTimer, SIGNAL(timeout()), this, SLOT(interval()));
-    connect(socket, SIGNAL(readyRead()), this, SLOT(read()));
+#include "Client.h"
 
-    connectToTracker();
-    initRequest();
+TrackerConnection::TrackerConnection(const std::string& fileName)
+	:socket(new QTcpSocket(this)), requestTimer(new QTimer(this)), mutex(new QMutex()), inActiveState(new QWaitCondition()), torrent(fileName), request(torrent.getDict())
+{
+	connect(socket, SIGNAL(connected()), this, SLOT(start()));
+	connect(requestTimer, SIGNAL(timeout()), this, SLOT(interval()));
+	connect(socket, SIGNAL(readyRead()), this, SLOT(read()));
+
+	requestTimer->setSingleShot(true);
+	currentState = State::INIT;
+	connectToTracker();
+	initRequest();
+
+	isUpdateSheduled = false;
+	isTimerTimeouted = false;
 }
 
 TrackerConnection::~TrackerConnection()
 {
-    stop();
-    socket->disconnect();
+	stopRequest();
+	delete mutex;
+	delete inActiveState;
 }
 
 void TrackerConnection::initRequest()
 {
-    request.setPeer_id("0");
-    request.setPort(0);
-    request.setUploaded(0);
-    request.setDownloaded(0);
-    request.setCompact(false);
-    request.setNo_peer_id(false);
+	mutex->lock();
+	request.setPeer_id(Client::getInstance()->getId());
+	request.setPort(0);
+	request.setUploaded(0);
+	request.setDownloaded(0);
+	request.setCompact(false);
+	request.setNo_peer_id(false);
+	mutex->unlock();
 }
 
 void TrackerConnection::connectToTracker()
 {
-    bencode::Dict &torrentDict = (*torrent.getDict());
+	bencode::Dict& torrentDict = (*torrent.getDict());
 
-    bencode::String* announce = dynamic_cast <bencode::String*> (torrentDict["announce"].get());
+	bencode::String* announce = dynamic_cast <bencode::String*> (torrentDict["announce"].get());
 
-    size_t pos = announce->find(L":");
+	size_t pos = announce->find(L":");
 
-    QString adress = QString::fromStdWString(announce->substr(0, pos));
-    quint16 port = (quint16) QString::fromStdWString(announce->substr(pos + 1)).toUInt();
+	QString adress = QString::fromStdWString(announce->substr(0, pos));
+	quint16 port = (quint16) QString::fromStdWString(announce->substr(pos + 1)).toUInt();
 
-    socket->connectToHost(adress, port);
+	socket->connectToHost(adress, port);
 }
 
 void TrackerConnection::sendRequest()
 {
-    socket->write(QByteArray::fromStdString(request.getRequest()));
-    socket->flush();
+	socket->write(QByteArray::fromStdString(request.getRequest()));
+	std::cerr << request.getRequest() << std::endl;
+	socket->flush();
+
+	currentState = State::AWAITING;
 }
 
-void TrackerConnection::start()
+void TrackerConnection::startRequest()
 {
-    request.setEvent("started");
-    sendRequest();
+	mutex->lock();
+
+	if (currentState == State::INIT)
+	{
+		request.setEvent("started");
+		sendRequest();
+	}
+
+	mutex->unlock();
 }
 
-void TrackerConnection::stop()
+void TrackerConnection::stopRequest()
 {
-    request.setEvent("stoped");
-    requestTimer->stop();
-    sendRequest();
+	mutex->lock();
+
+	if (currentState == State::AWAITING)
+	{
+		inActiveState->wait(mutex);
+	}
+	if (currentState == State::ACTIVE)
+	{
+		request.setEvent("stopped");
+		requestTimer->stop();
+		sendRequest();
+		socket->waitForDisconnected();
+		currentState = State::CLOSED;
+		inActiveState->wakeAll();
+	}
+
+	mutex->unlock();
 }
 
-void TrackerConnection::completed()
+void TrackerConnection::completeRequest()
 {
-    request.setEvent("completed");
-    sendRequest();
+	mutex->lock();
+
+	if (currentState == State::AWAITING)
+	{
+		inActiveState->wait(mutex);
+	}
+	if (currentState == State::ACTIVE)
+	{
+		request.setEvent("completed");
+		sendRequest();
+		socket->waitForDisconnected();
+	}
+
+	mutex->unlock();
+}
+
+void TrackerConnection::updatePeerList()
+{
+	mutex->lock();
+
+	if (isTimerTimeouted)
+	{
+		regularRequest();
+	}
+	else
+	{
+		isUpdateSheduled = true;
+	}
+	mutex->unlock();
+}
+
+void TrackerConnection::regularRequest()
+{
+	mutex->lock();
+
+	if (currentState != State::ACTIVE)
+	{
+		return;
+	}
+
+	request.resetEvent();
+	sendRequest();
+	mutex->unlock();
 }
 
 void TrackerConnection::interval()
 {
-    request.resetEvent();
-    sendRequest();
-    requestTimer->start();
+	mutex->lock();
+
+	if (isUpdateSheduled)
+	{
+		regularRequest();
+	}
+	else
+	{
+		isTimerTimeouted = true;
+	}
+
+	mutex->unlock();
 }
 
 void TrackerConnection::read()
 {
-    QByteArray toRead;
-    toRead = socket->readAll();
+	QByteArray toRead;
+	toRead = socket->readAll();
 
-    buf += utf8decoder.decode(toRead.toStdString());
+	buf += utf8decoder.decode(toRead.toStdString());
 
-    decodeResponse();
+	decodeResponse();
 }
 
 void TrackerConnection::decodeResponse()
 {
-    bencode::Dict* response;
+	bencode::Dict* response;
 
-    try
-    {
-        response = dynamic_cast <bencode::Dict*> (decoder.decode(buf));
+	std::wcerr << buf << std::endl;
 
-        if (response == nullptr)
-        {
-            return;
-        }
+	try
+	{
+		response = dynamic_cast <bencode::Dict*> (decoder.decode(buf));
 
-        std::cout << response->code() << std::endl;
+		if (response == nullptr)
+		{
+			return;
+		}
 
-        bencode::Int* interval = dynamic_cast <bencode::Int*> (response->at(L"interval").get());
+		std::cout << response->code() << std::endl;
 
-        if (interval != nullptr)
-        {
-            requestTimer->setInterval(interval->getValue() * 1000);
-            requestTimer->start();
-        }
-    }
-    catch(bencode::Exception::end_of_file())
-    {
-        return;
-    }
-    catch(std::exception e)
-    {
-        std::cerr << e.what() << std::endl;
+		bencode::Int* interval = dynamic_cast <bencode::Int*> (response->at(L"interval").get());
 
-        return;
-    }
+		if (interval != nullptr)
+		{
+			requestTimer->setInterval(interval->getValue() * 1000);
+		}
+
+		isUpdateSheduled = false;
+		isTimerTimeouted = false;
+		requestTimer->start();
+
+		if (response->at(L"peers"))
+		{
+			bencode::List peers = *(dynamic_cast <bencode::List*> (response->at(L"peers").get()));
+
+			emit peerListUpdated(peers);
+		}
+
+		currentState = State::ACTIVE;
+		inActiveState->wakeOne();
+
+		std::wcerr << buf << std::endl;
+	}
+	catch (bencode::Exception::end_of_file())
+	{
+		std::cerr << "Oczekiwanie na pozosta³e fragmenty odpowiedzi..." << std::endl;
+	}
+	catch (std::exception e)
+	{
+		std::cerr << e.what() << std::endl;
+	}
+
+	return;
 }

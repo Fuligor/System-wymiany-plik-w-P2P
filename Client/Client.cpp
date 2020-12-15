@@ -3,6 +3,17 @@
 #include <QApplication>
 #include <QDateTime>
 
+#include <iostream>
+
+void toString(quint64 value, char* string)
+{
+    for(int i = 0; i < 8; i++)
+    {
+        string[i] = value & (0xFF);
+        value = value >> 8;
+    }
+}
+
 Client::Client()
     :QObject(nullptr), myId(createId())
 {
@@ -12,14 +23,11 @@ const std::string Client::createId()
 {
     char id[20] = "-TA-";
 
-    *((quint64*) id + 4) = QApplication::instance()->applicationPid();
-    *((quint64*) id + 12) = QDateTime::currentDateTime().toMSecsSinceEpoch();
+    toString(QApplication::instance()->applicationPid(), id + 4);
+    toString(QDateTime::currentDateTime().toMSecsSinceEpoch(), id + 12);
 
     std::cout << QApplication::instance()->applicationPid() << std::endl;
     std::cout << QDateTime::currentDateTime().toMSecsSinceEpoch() << std::endl;
-
-    std::cout << *((quint64*) id + 4) << std::endl;
-    std::cout << *((quint64*) id + 12) << std::endl;
 
     return std::string(id, 20);
 }

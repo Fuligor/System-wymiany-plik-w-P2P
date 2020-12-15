@@ -10,12 +10,6 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    std::string name = "Client.exe";
-    std::string adress = "192.168.1.119:1234";
-
-    TorrentFile* file = new TorrentFile(name, adress, 4096);
-    file->createFile();
-    delete file;
 
     TorrentDownloader downloader("Client.exe.torrent");
 

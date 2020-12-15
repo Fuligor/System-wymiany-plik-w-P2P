@@ -26,7 +26,7 @@ private:
 	//std::list <PeerConnection> connectedPeers;
 
 public:
-	TorrentDownloader(const std::string& fileName);
+	TorrentDownloader(const std::string& fileName, QObject* parent = nullptr);
 	~TorrentDownloader();
 
 protected slots:

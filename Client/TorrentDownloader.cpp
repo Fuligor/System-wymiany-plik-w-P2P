@@ -9,10 +9,10 @@
 
 #include <iostream>
 
-TorrentDownloader::TorrentDownloader(const std::string& fileName)
-	:tracker(new TrackerConnection(fileName))
+TorrentDownloader::TorrentDownloader(const std::string& fileName, QObject* parent)
+	:QObject(parent), tracker(new TrackerConnection(fileName, this))
 {
-	connect(tracker, SIGNAL(peerListUpdated), this, SLOT(updatePeerList));
+	connect(tracker, SIGNAL(peerListUpdated(bencode::List)), this, SLOT(updatePeerList(bencode::List)));
 }
 
 TorrentDownloader::~TorrentDownloader()
@@ -32,7 +32,7 @@ void TorrentDownloader::updatePeerList(bencode::List peers)
 		buf = dynamic_cast <bencode::String*> (peerDict["ip"].get())->c_str();
 		peer.address = std::string(buf.begin(), buf.end());
 
-		peer.port = dynamic_cast <bencode::Int*> (peerDict["peer id"].get())->getValue();
+		peer.port = dynamic_cast <bencode::Int*> (peerDict["port"].get())->getValue();
 
 		std::cout << peer.id << " " << peer.address << " " << peer.port << std::endl;
 
