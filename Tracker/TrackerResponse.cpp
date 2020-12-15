@@ -1,4 +1,5 @@
 #include "TrackerResponse.h"
+#include "../TorrentFile/Peer.h"
 
 TrackerResponse::TrackerResponse(){}
 TrackerResponse::~TrackerResponse(){}
@@ -34,12 +35,12 @@ void TrackerResponse::setIncomplete(int incom)
     incomplete = incom;
     return;
 }
-void TrackerResponse::addPeer(std::string peer_id, std::string ip, int port)
+void TrackerResponse::addPeer(const Peer& peer)
 {
     bencode::Dict dic;
-    dic["peer id"] = std::make_shared <bencode::String> (peer_id);
-    dic["ip"] = std::make_shared <bencode::String> (ip);
-    dic["port"] = std::make_shared <bencode::Int> (port);
+    dic["peer id"] = std::make_shared <bencode::String> (peer.id);
+    dic["ip"] = std::make_shared <bencode::String> (peer.address);
+    dic["port"] = std::make_shared <bencode::Int> (peer.port);
     peers.push_back(std::make_shared <bencode::Dict> (dic));
     return;
 }

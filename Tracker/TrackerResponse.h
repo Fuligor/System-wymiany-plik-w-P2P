@@ -4,6 +4,8 @@
 
 #include "Bencode.h"
 
+struct Peer;
+
 class TrackerResponse
 {
     private:
@@ -24,7 +26,7 @@ class TrackerResponse
         void resetTracker_id();
         void setComplete(int com);
         void setIncomplete(int incom);
-        void addPeer(std::string peer_id, std::string ip, int port);
+        void addPeer(const Peer& peer);
 
         std::string getResponse() const;
 };

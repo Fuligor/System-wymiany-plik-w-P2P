@@ -27,6 +27,9 @@ add_executable (Tracker ${SOURCES})
 target_include_directories(Tracker
           PUBLIC "${PROJECT_SOURCE_DIR}/Bencode"
 )
-
+target_include_directories(Tracker
+          PUBLIC "${PROJECT_SOURCE_DIR}/TorrentFile"
+)
 target_link_libraries(Tracker PRIVATE Threads::Threads)
 target_link_libraries(Tracker PRIVATE Bencode)
+target_link_libraries(Tracker PRIVATE TorrentFile)

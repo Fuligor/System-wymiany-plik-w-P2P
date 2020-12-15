@@ -1,17 +1,21 @@
 #include "Connection.h"
 
-#include <sys/epoll.h>
-#include <sys/timerfd.h>
-
 #include <stdlib.h>
+#include <time.h>
 #include <unistd.h>
+
+#include <vector>
 
 #include "Server.h"
 
-Connection::Connection(const int& socket, const int& timer, int interval, sockaddr_in* address)
-    :socket(socket), timer(timer), state(State::NEW), interval(interval)
+int min(int a, int b)
 {
-    timerReset();
+    return a < b? a : b;
+}
+
+Connection::Connection(const int &socket, int interval, sockaddr_in *address)
+    : socket(socket), state(State::NEW), interval(interval), address(address)
+{
 }
 
 Connection::~Connection()
@@ -21,7 +25,7 @@ Connection::~Connection()
 
 void Connection::closeConnection()
 {
-    if(state == State::CLOSED)
+    if (state == State::CLOSED)
     {
         return;
     }
@@ -31,10 +35,6 @@ void Connection::closeConnection()
     printf("Klient rozłączony\n");
 
     close(socket);
-    close(timer);
-
-    epoll_ctl(Server::getInstance()->getSocketEpoll(), EPOLL_CTL_DEL, socket, NULL);
-    epoll_ctl(Server::getInstance()->getTimerEpoll(), EPOLL_CTL_DEL, timer, NULL);
 }
 
 int Connection::getSocket()
@@ -44,22 +44,22 @@ int Connection::getSocket()
 
 void Connection::addToBuffer(const char *data, size_t size)
 {
+    std::wcout << buf << std::endl;
     std::string string(data, size);
+    printf("Readed %d\n", string.size());
     buf += utf8Decoder.decode(string);
 }
 
-bencode::Dict* Connection::getReguest()
+bencode::Dict *Connection::getReguest()
 {
     printf("Dekodowanie zapytania...\n");
-    try 
+    try
     {
-        bencode::Dict* result = dynamic_cast <bencode::Dict*> (decoder.decode(buf));
-        timerReset();
-        printf("%s\n", result->code().c_str());
+        bencode::Dict *result = dynamic_cast<bencode::Dict *>(decoder.decode(buf));
 
         return result;
     }
-    catch(bencode::Exception::end_of_file)
+    catch (bencode::Exception::end_of_file)
     {
         printf("Niepełne kodowanie... oczekiwanie na pozostałe fragmenty\n");
 
@@ -70,71 +70,111 @@ bencode::Dict* Connection::getReguest()
 bool Connection::createResponse()
 {
     TrackerResponse response;
-    bencode::Dict* request;
+    bencode::Dict *request = nullptr;
+    Server *server = Server::getInstance();
 
     try
     {
         request = getReguest();
     }
-    catch(const std::exception& e)
+    catch (const std::exception &e)
     {
         printf("Niepoprawne kodowanie! Odsyłanie odpowiedzi...");
 
         response.setF_reason("Wrong bencoding!");
 
         sendResponse(response);
+
+        return false;
     }
-    
-    if(request == nullptr)
+
+    if (request == nullptr)
     {
         return false;
     }
-    bencode::String* event = dynamic_cast <bencode::String*> ((*request)["event"].get());
-    
-    if(event == nullptr)
-    {
 
+    bencode::String *info_hash = dynamic_cast<bencode::String *>((*request)["info_hash"].get());
+    bencode::String *id = dynamic_cast<bencode::String *>((*request)["peer_id"].get());
+    bencode::String *event = dynamic_cast<bencode::String *>((*request)["event"].get());
+    bencode::Int *port = dynamic_cast<bencode::Int *>((*request)["port"].get());
+    bencode::Int *left = dynamic_cast<bencode::Int *>((*request)["left"].get());
+
+    std::cout << (*request)["event"]->code() << std::endl;
+    std::cout << (*request)["info_hash"]->code() << std::endl;
+    std::cout << (*request)["peer_id"]->code() << std::endl;
+    std::cout << (*request)["port"]->code() << std::endl;
+
+    Peer peer;
+
+    peer.id = std::string(id->begin(), id->end());
+
+    std::cout << std::endl;
+
+    char ip_address[20];
+    inet_ntop(AF_INET, &(address->sin_addr), ip_address, sizeof(ip_address));
+    peer.address = std::string(ip_address);
+    peer.port = port->getValue();
+
+    if (*event == L"started")
+    {
+        state = State::CONNECTED;
+
+        server->addPeer(info_hash, peer);
+        if (left->getValue() == 0)
+        {
+            ++(server->completed);
+        }
+        else
+        {
+            ++(server->incompleted);
+        }
     }
-    else if(*event == L"started")
+    else if (*event == L"stopped")
     {
+        server->removePeer(info_hash, peer);
+        if (left == 0)
+        {
+            --(server->completed);
+        }
+        else
+        {
+            --(server->incompleted);
+        }
 
+        closeConnection();
+
+        return true;
     }
-    else if(*event == L"stopped")
+    else if (*event == L"completed")
     {
-
+        --(server->incompleted);
+        ++(server->completed);
     }
-    else if(*event == L"completed")
-    {
 
+    const std::vector<Peer>& peers = server->getRandomPeers(info_hash);
+    std::vector <Peer> randomPeer = std::vector <Peer> (peers.begin(), peers.end());
+
+    for(int i = 0; i < min(randomPeer.size(), 50); ++i)
+    {
+        if(peer.id != randomPeer[i].id)
+        {
+            response.addPeer(randomPeer[i]);
+        }
     }
 
     response.setInterval(interval);
     response.setTracker_id("0");
-    response.setComplete(0);
-    response.setIncomplete(0);
+    response.setComplete(server->completed);
+    response.setIncomplete(server->incompleted);
 
     sendResponse(response);
 
     return true;
 }
 
-void Connection::sendResponse(const TrackerResponse& response)
+void Connection::sendResponse(const TrackerResponse &response)
 {
     std::string code = response.getResponse();
 
     write(socket, code.c_str(), code.size());
-}
-
-void Connection::timerReset()
-{
-    timespec now;
-    itimerspec time;
-    clock_gettime(CLOCK_REALTIME, &now);
-
-    time.it_value.tv_nsec = now.tv_nsec;
-    time.it_value.tv_sec = now.tv_sec + interval + 1;
-    time.it_interval.tv_nsec = 0;
-    time.it_interval.tv_sec = 0;
-
-    timerfd_settime(timer, TFD_TIMER_ABSTIME, &time, NULL);
 }
