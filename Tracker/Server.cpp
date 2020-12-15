@@ -1,7 +1,6 @@
 #include "Server.h"
 
 #include <sys/epoll.h>
-#include <sys/timerfd.h>
 
 #include <pthread.h>
 #include <fcntl.h>
@@ -12,7 +11,12 @@
 
 #include <stdexcept>
 
+#include <ctime>
+#include <cstdlib>
+#include <algorithm>
+
 #include "Connection.h"
+#include "../TorrentFile/Peer.h"
 
 void *readData(void *data)
 {
@@ -20,22 +24,23 @@ void *readData(void *data)
     epoll_event event;
     int epoll = Server::getInstance()->getSocketEpoll();
 
-    Connection* connection;
+    Connection *connection;
 
-    char buf[20];
+    char buf[2000];
     int size;
-
 
     while (Server::getInstance()->isRunning())
     {
         epoll_wait(epoll, &event, 1, -1); //1 = maksymalnie jedno zdarzenie, -1 = bez timeout
         if (event.events & EPOLLIN)
         {
-            connection = (Connection*) event.data.ptr;
+            connection = (Connection *)event.data.ptr;
             size = read(connection->getSocket(), buf, sizeof(buf));
 
-            if (size == 0)
+            if (size <= 0)
             {
+                perror("Socket\n");
+
                 delete connection;
 
                 continue;
@@ -43,30 +48,6 @@ void *readData(void *data)
 
             connection->addToBuffer(buf, size);
             connection->createResponse();
-        }
-    }
-
-    pthread_exit(NULL);
-}
-
-void *connectionTimeout(void *data)
-{
-    pthread_detach(pthread_self());
-    epoll_event event;
-    int epoll = Server::getInstance()->getTimerEpoll();
-
-    printf("WATCHDOG\n");
-
-    Connection* connection;
-
-    while (Server::getInstance()->isRunning())
-    {
-        epoll_wait(epoll, &event, 1, -1); //1 = maksymalnie jedno zdarzenie, -1 = bez timeout
-        if (event.events & EPOLLIN)
-        {
-            connection = (Connection*) event.data.ptr;
-
-            delete connection;
         }
     }
 
@@ -113,9 +94,8 @@ void Server::initListen(unsigned int queueSize)
 void Server::initEpoll()
 {
     socketEpoll = epoll_create1(0);
-    timerEpoll = epoll_create1(0);
 
-    if (socketEpoll < 0 || timerEpoll < 0)
+    if (socketEpoll < 0)
     {
         fprintf(stderr, "Błąd przy próbie utworzenie epoll");
         exit(-1);
@@ -125,6 +105,7 @@ void Server::initEpoll()
 Server::Server()
     : state(0)
 {
+    std::srand(time(NULL));
 }
 
 Server::~Server()
@@ -132,7 +113,6 @@ Server::~Server()
     server = nullptr;
 
     close(socketEpoll);
-    close(timerEpoll);
 }
 
 void Server::create(int port, int queueSize)
@@ -166,12 +146,6 @@ int Server::getSocketEpoll()
     return socketEpoll;
 }
 
-
-int Server::getTimerEpoll()
-{
-    return timerEpoll;
-}
-
 bool Server::isRunning()
 {
     return state & 1;
@@ -197,21 +171,13 @@ void Server::run()
         exit(-1);
     }
 
-    pthread_t thread2;
-    create_result = pthread_create(&thread2, NULL, connectionTimeout, NULL);
-    if (create_result)
-    {
-        fprintf(stderr, "Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
-        exit(-1);
-    }
-
     sockaddr_in clientAddress;
     memset(&clientAddress, 0, sizeof(sockaddr));
-    socklen_t clientAddressSize = sizeof(clientAddress); 
+    socklen_t clientAddressSize = sizeof(clientAddress);
 
     while (isRunning())
     {
-        connection_socket_descriptor = accept(socket_desc, (sockaddr*) &clientAddress, &clientAddressSize);
+        connection_socket_descriptor = accept(socket_desc, (sockaddr *)&clientAddress, &clientAddressSize);
         if (connection_socket_descriptor < 0)
         {
             fprintf(stderr, "%s: Błąd przy próbie utworzenia gniazda dla połączenia.\n");
@@ -220,17 +186,36 @@ void Server::run()
 
         fcntl(connection_socket_descriptor, F_SETFL, O_NONBLOCK, 1);
 
-        connection_timer = timerfd_create(CLOCK_REALTIME, 0);
-
-        event.data.ptr = new Connection(connection_socket_descriptor, connection_timer, 10, &clientAddress);
+        event.data.ptr = new Connection(connection_socket_descriptor, 120, &clientAddress);
 
         epoll_ctl(socketEpoll, EPOLL_CTL_ADD, connection_socket_descriptor, &event);
-        epoll_ctl(timerEpoll, EPOLL_CTL_ADD, connection_timer, &event);
 
         printf("Połączono z klientem\n");
     }
 
     close(socket_desc);
+}
+
+void Server::addPeer(const std::wstring *info_hash, const Peer &peer)
+{
+    peers[*info_hash].push_back(peer);
+}
+void Server::removePeer(const std::wstring *info_hash, const Peer &peer)
+{
+    for(int i = 0; i < peers[*info_hash].size(); ++i)
+    {
+        if(peers[*info_hash][i].id == peer.id)
+        {
+            peers[*info_hash].erase(peers[*info_hash].begin() + i);
+            break;
+        }
+    }
+}
+const std::vector<Peer> & Server::getRandomPeers(const std::wstring *info_hash)
+{
+    std::random_shuffle(peers[*info_hash].begin(), peers[*info_hash].end());
+
+    return peers[*info_hash];
 }
 
 Server *Server::server = nullptr;

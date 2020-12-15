@@ -1,11 +1,10 @@
 #pragma once
-#include <signal.h>
-#include <time.h>
-
 #include <string>
 
 #include "../Bencode/Bencode.h"
 #include "TrackerResponse.h"
+
+#include "../TorrentFile/Peer.h"
 
 struct sockaddr_in;
 
@@ -19,10 +18,9 @@ protected:
         CLOSED
     } state;
 
-    static int timerEpoll;
     int interval;
+    sockaddr_in* address;
 
-    int timer;
     int socket;
 
     std::wstring buf;
@@ -30,7 +28,7 @@ protected:
     bencode::Utf8Decoder utf8Decoder;
     bencode::Decoder decoder;
 public:
-    Connection(const int& socket, const int& timer, int interval, sockaddr_in* address);
+    Connection(const int& socket, int interval, sockaddr_in* address);
     ~Connection();
 
     void closeConnection();
@@ -40,6 +38,4 @@ public:
     bencode::Dict* getReguest();
     bool createResponse();
     void sendResponse(const TrackerResponse& response);
-
-    void timerReset();
 };
