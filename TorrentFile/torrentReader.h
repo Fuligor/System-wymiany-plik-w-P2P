@@ -8,5 +8,4 @@ class torrentReader{
         torrentReader(std::string fileName);
         ~torrentReader();
         bencode::Dict *getDict();
-        bencode::Dict *getInfoDict();
 };

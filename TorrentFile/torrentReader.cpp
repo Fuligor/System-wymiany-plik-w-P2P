@@ -14,15 +14,13 @@ torrentReader::torrentReader(std::string fileName)
     readDict = dynamic_cast <bencode::Dict*> (decoder.decode(string));
 }
 
-torrentReader::~torrentReader(){}
+torrentReader::~torrentReader()
+{
+    delete readDict;
+}
 
 
 bencode::Dict *torrentReader::getDict()
 {
     return readDict;
-}
-
-bencode::Dict* torrentReader::getInfoDict()
-{
-    return dynamic_cast <bencode::Dict*> ((*readDict)["info"].get());
 }

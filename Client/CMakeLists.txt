@@ -21,6 +21,8 @@ set(SOURCES
 	"ShareFileWindow.cpp"
     "ShareFileWindow.h"
     "ShareFileWindow.ui"
+    "PeerConnection.cpp"
+    "PeerConnection.h"
     "TrackerConnection.cpp"
     "TrackerConnection.h"
     "TorrentDownloader.cpp"

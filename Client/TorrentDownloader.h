@@ -23,8 +23,7 @@ class TorrentDownloader:
 private:
 	TrackerConnection* tracker;
 	std::set <Peer> availablePeers;
-	//std::list <PeerConnection> connectedPeers;
-
+	std::map <std::wstring, PeerConnection> connectedPeers;
 public:
 	TorrentDownloader(const std::string& fileName, QObject* parent = nullptr);
 	~TorrentDownloader();

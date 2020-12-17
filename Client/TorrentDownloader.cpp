@@ -3,11 +3,7 @@
 #include "Types.h"
 
 #include "TrackerConnection.h"
-
-
-
-
-#include <iostream>
+#include "PeerConnection.h"
 
 TorrentDownloader::TorrentDownloader(const std::string& fileName, QObject* parent)
 	:QObject(parent), tracker(new TrackerConnection(fileName, this))
@@ -33,8 +29,6 @@ void TorrentDownloader::updatePeerList(bencode::List peers)
 		peer.address = std::string(buf.begin(), buf.end());
 
 		peer.port = dynamic_cast <bencode::Int*> (peerDict["port"].get())->getValue();
-
-		std::cout << peer.id << " " << peer.address << " " << peer.port << std::endl;
 
 		if(availablePeers.insert(peer).second)
 		{
