@@ -6,6 +6,8 @@
 #include "Client.h"
 #include "ShareFileWindow.h"
 
+struct TorrentDownloadStatus;
+
 class Window : public QMainWindow
 {
     Q_OBJECT
@@ -17,4 +19,6 @@ public:
 
 private:
     Ui::WindowClass ui;
+protected slots:
+    void torrentStatusUpdated(const std::string torrentId, const TorrentDownloadStatus* status);
 };

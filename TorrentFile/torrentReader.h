@@ -3,9 +3,9 @@
 
 class torrentReader{
     private:
-        bencode::Dict *readDict;
+        std::shared_ptr <bencode::Dict> readDict;
     public:
-        torrentReader(std::string fileName);
+        torrentReader(std::wstring fileName);
         ~torrentReader();
-        bencode::Dict *getDict();
+        std::shared_ptr <bencode::Dict> getDict();
 };

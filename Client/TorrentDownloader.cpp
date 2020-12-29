@@ -5,14 +5,24 @@
 #include "TrackerConnection.h"
 #include "PeerConnection.h"
 
-TorrentDownloader::TorrentDownloader(const std::string& fileName, QObject* parent)
-	:QObject(parent), tracker(new TrackerConnection(fileName, this))
+TorrentDownloader::TorrentDownloader(const std::shared_ptr <bencode::Dict>& torrentDict, QObject* parent)
+	:QObject(parent), tracker(new TrackerConnection(torrentDict, this))
 {
 	connect(tracker, SIGNAL(peerListUpdated(bencode::List)), this, SLOT(updatePeerList(bencode::List)));
+
+	std::shared_ptr <bencode::Dict> info = std::dynamic_pointer_cast <bencode::Dict> ((*torrentDict)["info"]);
+
+	status.fileName = std::dynamic_pointer_cast <bencode::String> ((*info)["name"])->data();
+	status.fileSize = std::dynamic_pointer_cast <bencode::Int> ((*info)["length"])->getValue();
 }
 
 TorrentDownloader::~TorrentDownloader()
 {
+}
+
+const TorrentDownloadStatus& TorrentDownloader::getDownloadStatus() const
+{
+	return status;
 }
 
 void TorrentDownloader::updatePeerList(bencode::List peers)

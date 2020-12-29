@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-torrentReader::torrentReader(std::string fileName)
+torrentReader::torrentReader(std::wstring fileName)
 {
     std::ifstream inFile(fileName, std::ios::binary);
 
@@ -11,16 +11,15 @@ torrentReader::torrentReader(std::string fileName)
     std::wstring string = utfDecoder.decode(inFile);
 
     bencode::Decoder decoder;
-    readDict = dynamic_cast <bencode::Dict*> (decoder.decode(string));
+    readDict.reset(dynamic_cast <bencode::Dict*> (decoder.decode(string)));
 }
 
 torrentReader::~torrentReader()
 {
-    delete readDict;
 }
 
 
-bencode::Dict *torrentReader::getDict()
+std::shared_ptr <bencode::Dict> torrentReader::getDict()
 {
     return readDict;
 }

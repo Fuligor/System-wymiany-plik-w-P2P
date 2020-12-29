@@ -15,22 +15,30 @@ find_package(Qt5 COMPONENTS Network REQUIRED)
 # Dodaj źródło do pliku wykonywalnego tego projektu.
 
 set(SOURCES 
-	"main.cpp" 
+    "main.cpp" 
+    "BitSet.cpp"
+    "BitSet.h"
     "Client.cpp"
     "Client.h"
-	"ShareFileWindow.cpp"
+    "ShareFileWindow.cpp"
     "ShareFileWindow.h"
     "ShareFileWindow.ui"
     "PeerConnection.cpp"
     "PeerConnection.h"
     "TrackerConnection.cpp"
     "TrackerConnection.h"
+    "Torrent.cpp"
+    "Torrent.h"
     "TorrentDownloader.cpp"
     "TorrentDownloader.h"
-	"Window.cpp" 
-	"Window.h"
-	"Window.ui"
-	"Window.qrc"
+    "TorrentDownloadStatus.h"
+    "TorrentFileStatus.h"
+    "TorrentManager.cpp"
+    "TorrentManager.h"
+    "Window.cpp" 
+    "Window.h"
+    "Window.ui"
+    "Window.qrc"
 )
 
 add_executable (Client ${SOURCES})

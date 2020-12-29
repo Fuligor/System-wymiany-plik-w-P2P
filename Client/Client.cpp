@@ -2,8 +2,13 @@
 
 #include <QApplication>
 #include <QDateTime>
+#include <QDir>
 
 #include <iostream>
+
+#include "Torrent.h"
+#include "TorrentFile.h"
+#include "TorrentManager.h"
 
 void toString(quint64 value, char* string)
 {
@@ -17,6 +22,13 @@ void toString(quint64 value, char* string)
 Client::Client()
     :QObject(nullptr), myId(createId())
 {
+    QDir config(configPath.c_str());
+    if(!config.exists())
+    {
+        std::cout << config.absolutePath().toStdString() << std::endl;
+
+        QDir().mkpath(config.absolutePath());
+    }
 }
 
 const std::string Client::createId()
@@ -51,5 +63,19 @@ const std::string& Client::getId() const
     return myId;
 }
 
+const std::string& Client::getConfigPath()
+{
+    return Client::configPath;
+}
+
+void Client::shareFile(const std::wstring& fileName, const std::wstring& trackerAddres, const size_t pieceSize)
+{
+    TorrentFile file(fileName, trackerAddres, pieceSize);
+    file.createFile();
+
+    new Torrent(fileName + L".torrent", fileName);
+}
+
 Client* Client::sigleInstance = nullptr;
 QMutex Client::mutex;
+const std::string Client::configPath = "config";

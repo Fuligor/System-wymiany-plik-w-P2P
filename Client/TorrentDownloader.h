@@ -5,7 +5,10 @@
 #include <list>
 #include <set>
 
+#include "Bencode.h"
+
 #include "Peer.h"
+#include "TorrentDownloadStatus.h"
 
 class TrackerConnection;
 class PeerConnection;
@@ -22,16 +25,19 @@ class TorrentDownloader:
 
 private:
 	TrackerConnection* tracker;
+	TorrentDownloadStatus status;
 	std::set <Peer> availablePeers;
 	std::map <std::wstring, PeerConnection> connectedPeers;
 public:
-	TorrentDownloader(const std::string& fileName, QObject* parent = nullptr);
+	TorrentDownloader(const std::shared_ptr <bencode::Dict>& torrentDict, QObject* parent = nullptr);
 	~TorrentDownloader();
+	const TorrentDownloadStatus& getDownloadStatus() const;
 
 protected slots:
 	void updatePeerList(bencode::List peers);
 
 signals:
 	void peerAdded();
+	void statusUpdated();
 };
 #endif // !TORRENT_DOWNLOADER_H

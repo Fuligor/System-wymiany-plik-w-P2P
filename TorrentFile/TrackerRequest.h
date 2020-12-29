@@ -1,6 +1,5 @@
 #pragma once
 #include <string>
-#include <QCryptographicHash>
 #include "Bencode.h"
 #include "torrentReader.h"
 
@@ -18,7 +17,7 @@ class TrackerRequest
         std::shared_ptr <bencode::String> event;
         std::shared_ptr <bencode::String> trackerId;
     public:
-        TrackerRequest(bencode::Dict* torrentDict);
+        TrackerRequest(std::shared_ptr <bencode::Dict> torrentDict);
         ~TrackerRequest();
         void setPeer_id(std::string p_id);
         void setPort(int po);

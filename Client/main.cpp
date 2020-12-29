@@ -11,7 +11,7 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    TorrentDownloader downloader("Client.exe.torrent");
+    //TorrentDownloader downloader("Client.exe.torrent");
 
     Window w;
     w.show();

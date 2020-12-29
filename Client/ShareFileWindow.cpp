@@ -5,19 +5,30 @@
 #include <QListView>
 #include <QTreeView>
 
+#include "Client.h"
+#include "TorrentManager.h"
+
 ShareFileWindow::ShareFileWindow(QWidget* prevWindow, QWidget *parent)
     : QWidget(parent), prevWindow(prevWindow), fileDialog(new QFileDialog(this))
 {
     ui.setupUi(this);
     hide();
+    fileDialog->setModal(true);
 
 	connect(ui.Cancel, SIGNAL(clicked()), prevWindow, SLOT(show()));
 	connect(ui.Share, SIGNAL(clicked()), prevWindow, SLOT(show()));
+    connect(ui.listFiles, SIGNAL(clicked()), fileDialog, SLOT(show()));
     connect(fileDialog, SIGNAL(accepted()), this, SLOT(fileSelected()));
+    connect(ui.Share, SIGNAL(clicked()), this, SLOT(shareFile()));
 }
 
 ShareFileWindow::~ShareFileWindow()
 {
+}
+
+void ShareFileWindow::init()
+{
+    ui.fileName->setText("");
 }
 
 void ShareFileWindow::getFiles()
@@ -27,6 +38,13 @@ void ShareFileWindow::getFiles()
 
 void ShareFileWindow::fileSelected()
 {
-    ui.lineEdit->setText(fileDialog->selectedFiles()[0]);
+    ui.fileName->setText(fileDialog->selectedFiles()[0]);
     qDebug() << fileDialog->selectedFiles()[0];
 }
+
+void ShareFileWindow::shareFile()
+{
+    Client::getInstance()->shareFile(ui.fileName->text().toStdWString(), ui.trackerURL->currentText().toStdWString(), ui.pieceSize->value());
+}
+
+const size_t ShareFileWindow::kB = 1024;

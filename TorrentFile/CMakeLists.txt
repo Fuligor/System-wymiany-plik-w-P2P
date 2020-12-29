@@ -18,6 +18,8 @@ set(SOURCES
 	"File.cpp"
 	"FileFrag.h"
 	"FileFrag.cpp" 
+    "InfoDictHash.cpp"
+    "InfoDictHash.h"
 	"Peer.h"
 	"TorrentFile.h"
 	"TorrentFile.cpp"

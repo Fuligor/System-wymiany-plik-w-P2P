@@ -34,7 +34,6 @@ private:
     QWaitCondition* inActiveState;
     QTcpSocket* socket;
     QTimer* requestTimer;
-    torrentReader torrent;
     TrackerRequest request;
     bencode::Utf8Decoder utf8decoder;
     bencode::Decoder decoder;
@@ -42,11 +41,11 @@ private:
     bool isUpdateSheduled;
     bool isTimerTimeouted;
 public:
-    TrackerConnection(const std::string& fileName, QObject* parent = nullptr);
+    TrackerConnection(const std::shared_ptr <bencode::Dict>& torrentDict, QObject* parent = nullptr);
     ~TrackerConnection();
 protected:
     void initRequest();
-    void connectToTracker();
+    void connectToTracker(const std::shared_ptr <bencode::Dict>& torrentDict);
     void sendRequest();
 
 public slots:

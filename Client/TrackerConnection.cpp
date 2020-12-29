@@ -5,8 +5,8 @@
 
 #include "Client.h"
 
-TrackerConnection::TrackerConnection(const std::string& fileName, QObject* parent)
-	:QObject(parent), socket(new QTcpSocket(this)), requestTimer(new QTimer(this)), mutex(new QMutex()), inActiveState(new QWaitCondition()), torrent(fileName), request(torrent.getDict())
+TrackerConnection::TrackerConnection(const std::shared_ptr <bencode::Dict>& torrentDict, QObject* parent)
+	:QObject(parent), socket(new QTcpSocket(this)), requestTimer(new QTimer(this)), mutex(new QMutex()), inActiveState(new QWaitCondition()), request(torrentDict)
 {
 	connect(socket, SIGNAL(connected()), this, SLOT(startRequest()));
 	connect(requestTimer, SIGNAL(timeout()), this, SLOT(interval()));
@@ -14,7 +14,7 @@ TrackerConnection::TrackerConnection(const std::string& fileName, QObject* paren
 
 	requestTimer->setSingleShot(true);
 	currentState = State::INIT;
-	connectToTracker();
+	connectToTracker(torrentDict);
 	initRequest();
 
 	isUpdateSheduled = false;
@@ -40,11 +40,9 @@ void TrackerConnection::initRequest()
 	mutex->unlock();
 }
 
-void TrackerConnection::connectToTracker()
+void TrackerConnection::connectToTracker(const std::shared_ptr <bencode::Dict>& torrentDict)
 {
-	bencode::Dict& torrentDict = (*torrent.getDict());
-
-	bencode::String* announce = dynamic_cast <bencode::String*> (torrentDict["announce"].get());
+	bencode::String* announce = dynamic_cast <bencode::String*> ((*torrentDict)["announce"].get());
 
 	size_t pos = announce->find(L":");
 
