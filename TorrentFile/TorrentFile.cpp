@@ -9,10 +9,10 @@
 
 #include "File.h"
 
-TorrentFile::TorrentFile(const std::wstring fname, const std::wstring Utracker, int pLength)
+TorrentFile::TorrentFile(const std::string fname, const std::string Utracker, int pLength)
 {
-    fileName = QString::fromStdWString(fname);
-    URLtracker = QString::fromStdWString(Utracker);
+    fileName = QString::fromStdString(fname);
+    URLtracker = QString::fromStdString(Utracker);
     pieceLength = pLength;
 }
 TorrentFile::~TorrentFile(){}

@@ -4,14 +4,13 @@
 
 #include "Client.h"
 
-#include "TorrentDownloader.h"
-#include "TorrentFile.h"
+#include "TorrentManager.h"
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    //TorrentDownloader downloader("Client.exe.torrent");
+    //QObject::connect(&a, SIGNAL(aboutToQuit()), &(TorrentManager::getInstance()), SLOT(clear()));
 
     Window w;
     w.show();

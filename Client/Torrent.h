@@ -26,7 +26,7 @@ private:
 	void initialize(const std::string& fileHash);
 public:
 	Torrent(const std::string& fileHash);
-	Torrent(const std::wstring& torrendPath, const std::wstring& downloadPath);
+	Torrent(const std::string& torrendPath, const std::string& downloadPath);
 	~Torrent();
 protected:
 	void write();

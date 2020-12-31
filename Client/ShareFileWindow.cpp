@@ -44,7 +44,7 @@ void ShareFileWindow::fileSelected()
 
 void ShareFileWindow::shareFile()
 {
-    Client::getInstance()->shareFile(ui.fileName->text().toStdWString(), ui.trackerURL->currentText().toStdWString(), ui.pieceSize->value());
+    Client::getInstance()->shareFile(ui.fileName->text().toStdString(), ui.trackerURL->currentText().toStdString(), ui.pieceSize->value());
 }
 
 const size_t ShareFileWindow::kB = 1024;

@@ -5,6 +5,7 @@
 #include "InfoDictHash.h"
 
 TrackerRequest::TrackerRequest(std::shared_ptr <bencode::Dict> torrentDict)
+    :torrentDict(torrentDict)
 {
     bencode::Dict &tmp = *torrentDict;
     info = std::dynamic_pointer_cast <bencode::Dict> (tmp["info"]);
@@ -81,7 +82,7 @@ std::string TrackerRequest::getRequest()
 {
     bencode::Dict request;
 
-    request["info_hash"] = std::make_shared <bencode::String> (InfoDictHash::getHash(info));
+    request["info_hash"] = std::make_shared <bencode::String> (InfoDictHash::getHash(torrentDict));
     request["peer_id"] = peer_id;
     request["port"] = port;
     request["uploaded"] = uploaded;

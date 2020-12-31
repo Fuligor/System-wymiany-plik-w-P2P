@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-torrentReader::torrentReader(std::wstring fileName)
+torrentReader::torrentReader(std::string fileName)
 {
     std::ifstream inFile(fileName, std::ios::binary);
 

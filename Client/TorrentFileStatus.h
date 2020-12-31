@@ -10,8 +10,8 @@
 struct TorrentFileStatus
 {
 	BitSet pieceStatus;
-	std::wstring torrentPath;
-	std::wstring downloadPath;
+	std::string torrentPath;
+	std::string downloadPath;
 
 	TorrentFileStatus(const size_t& pieces)
 		:pieceStatus(pieces)

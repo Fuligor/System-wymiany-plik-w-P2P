@@ -6,6 +6,8 @@
 #include "Client.h"
 #include "ShareFileWindow.h"
 
+#include <map>
+
 struct TorrentDownloadStatus;
 
 class Window : public QMainWindow
@@ -14,6 +16,8 @@ class Window : public QMainWindow
 
     Client* client;
     ShareFileWindow* shareFileWindow;
+
+    std::map <std::string, size_t> idToRow;
 public:
     Window(QWidget *parent = Q_NULLPTR);
 

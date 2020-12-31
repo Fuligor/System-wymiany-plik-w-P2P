@@ -6,6 +6,7 @@
 class TrackerRequest
 {
     private:
+        std::shared_ptr <bencode::Dict> torrentDict;
         std::shared_ptr <bencode::Dict> info;
         std::shared_ptr <bencode::String> peer_id;
         std::shared_ptr <bencode::Int> port;

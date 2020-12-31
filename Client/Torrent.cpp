@@ -15,7 +15,7 @@
 
 void Torrent::initialize(const std::string& fileHash)
 {
-	downloader = new TorrentDownloader(torrentDict, this);
+	downloader = new TorrentDownloader(torrentDict, status.pieceStatus, this);
 	TorrentManager::getInstance().append(fileHash, this);
 	connect(downloader, SIGNAL(statusUpdated()), this, SLOT(downloadStatusUpdated()));
 	connect(this, SIGNAL(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)), &TorrentManager::getInstance(), SIGNAL(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)));
@@ -37,7 +37,7 @@ Torrent::Torrent(const std::string& fileHash)
 	initialize(fileHash);
 }
 
-Torrent::Torrent(const std::wstring& torrendPath, const std::wstring& downloadPath)
+Torrent::Torrent(const std::string& torrendPath, const std::string& downloadPath)
 	:status(0)
 {
 	status.torrentPath = torrendPath;
@@ -80,15 +80,15 @@ void Torrent::write()
 	QByteArray buf;
 
 	file->write((char*) &pieceCount, sizeof(pieceCount));
-	file->write(status.pieceStatus.getData(), pieceCount);
+	file->write(status.pieceStatus.getData(), status.pieceStatus.getDataSize());
 
-	buf = QString::fromStdWString(status.torrentPath).toUtf8();
+	buf = QString::fromStdString(status.torrentPath).toUtf8();
 
 	const size_t torrentPathLenght = buf.size();
 	write(torrentPathLenght);
 	file->write(buf);
 
-	buf = QString::fromStdWString(status.downloadPath).toUtf8();
+	buf = QString::fromStdString(status.downloadPath).toUtf8();
 
 	const size_t downloadPathLenght = buf.size();
 	write(downloadPathLenght);
@@ -120,18 +120,18 @@ void Torrent::read()
 	read(pieceCount);
 	buffer = new char[pieceCount];
 
-	file->read(buffer, pieceCount);
+	file->read(buffer, BitSet::getPageCount(pieceCount));
 	status.pieceStatus = BitSet((unsigned char*) buffer, pieceCount);
 
 	read(torrentPathLenght);
 
 	buf = file->read(torrentPathLenght);
-	status.torrentPath = QString::fromUtf8(buf).toStdWString();
+	status.torrentPath = QString::fromUtf8(buf).toStdString();
 
 	read(downloadPathLenght);
 
 	buf = file->read(downloadPathLenght);
-	status.downloadPath = QString::fromUtf8(buf).toStdWString();
+	status.downloadPath = QString::fromUtf8(buf).toStdString();
 }
 
 void Torrent::read(size_t& size)

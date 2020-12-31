@@ -20,6 +20,7 @@ set(SOURCES
     "BitSet.h"
     "Client.cpp"
     "Client.h"
+    "ConnectionStatus.h"
     "ShareFileWindow.cpp"
     "ShareFileWindow.h"
     "ShareFileWindow.ui"

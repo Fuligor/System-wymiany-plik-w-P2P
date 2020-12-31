@@ -21,7 +21,7 @@ public:
     static Client *getInstance();
     const std::string& getId() const;
     static const std::string& getConfigPath();
-    void shareFile(const std::wstring& fileName, const std::wstring& trackerAddres, const size_t pieceSize);
+    void shareFile(const std::string& fileName, const std::string& trackerAddres, const size_t pieceSize);
 signals:
     void torrentAdded();
 };

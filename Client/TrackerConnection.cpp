@@ -4,17 +4,25 @@
 #include <QTimer>
 
 #include "Client.h"
+#include "TorrentDownloader.h"
 
-TrackerConnection::TrackerConnection(const std::shared_ptr <bencode::Dict>& torrentDict, QObject* parent)
-	:QObject(parent), socket(new QTcpSocket(this)), requestTimer(new QTimer(this)), mutex(new QMutex()), inActiveState(new QWaitCondition()), request(torrentDict)
+TrackerConnection::TrackerConnection(const std::shared_ptr <bencode::Dict>& torrentDict, TorrentDownloader* parent)
+	:QObject(parent), socket(new QTcpSocket(this)), requestTimer(new QTimer(this)), connectTimer(new QTimer(this)), mutex(new QMutex()),
+	inActiveState(new QWaitCondition()), request(torrentDict)
 {
-	connect(socket, SIGNAL(connected()), this, SLOT(startRequest()));
-	connect(requestTimer, SIGNAL(timeout()), this, SLOT(interval()));
-	connect(socket, SIGNAL(readyRead()), this, SLOT(stopRequest()));
+	connect(socket, SIGNAL(connected()), this, SLOT(onConnection()));
+	//connect(socket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(onConnection()));
+	connect(connectTimer, SIGNAL(timeout()), this, SLOT(retryConnect()));
+	connect(socket, SIGNAL(readyRead()), this, SLOT(read()));
+	connect(socket, SIGNAL(disconnected()), this, SLOT(reconnect()));
+	connect(this, SIGNAL(statusChanged(const ConnectionStatus &)), parent, SLOT(onTrackerStatusChanged(const ConnectionStatus &)));
+	connect(this, SIGNAL(peerListUpdated(bencode::List)), parent, SLOT(updatePeerList(bencode::List)));
 
 	requestTimer->setSingleShot(true);
-	currentState = State::INIT;
-	connectToTracker(torrentDict);
+	connectTimer->setSingleShot(true);
+
+	initConnection(torrentDict);
+	connectToTracker();
 	initRequest();
 
 	isUpdateSheduled = false;
@@ -26,6 +34,8 @@ TrackerConnection::~TrackerConnection()
 	stopRequest();
 	delete mutex;
 	delete inActiveState;
+	delete requestTimer;
+	delete connectTimer;
 }
 
 void TrackerConnection::initRequest()
@@ -40,16 +50,62 @@ void TrackerConnection::initRequest()
 	mutex->unlock();
 }
 
-void TrackerConnection::connectToTracker(const std::shared_ptr <bencode::Dict>& torrentDict)
+void TrackerConnection::initConnection(const std::shared_ptr <bencode::Dict>& torrentDict)
 {
 	bencode::String* announce = dynamic_cast <bencode::String*> ((*torrentDict)["announce"].get());
 
 	size_t pos = announce->find(L":");
 
-	QString adress = QString::fromStdWString(announce->substr(0, pos));
-	quint16 port = (quint16) QString::fromStdWString(announce->substr(pos + 1)).toUInt();
+	adress = QString::fromStdWString(announce->substr(0, pos));
+	port = (quint16) QString::fromStdWString(announce->substr(pos + 1)).toUInt();
+}
+
+void TrackerConnection::connectToTracker()
+{
+	setState(ConnectionStatus::INIT);
 
 	socket->connectToHost(adress, port);
+	connectTimer->start(10000);
+}
+
+void TrackerConnection::onConnection()
+{
+	connectTimer->stop();
+
+	if (!firstConnectionTry)
+	{
+		disconnect(requestTimer, SIGNAL(timeout()), this, SLOT(connectToTracker()));
+		requestTimer->stop();
+	}
+
+	connect(requestTimer, SIGNAL(timeout()), this, SLOT(interval()));
+
+	startRequest();
+}
+
+void TrackerConnection::retryConnect()
+{
+	socket->abort();
+
+	setState(ConnectionStatus::REFUSED);
+
+	if (firstConnectionTry)
+	{
+		connect(requestTimer, SIGNAL(timeout()), this, SLOT(connectToTracker()));
+	}
+
+	requestTimer->start(30000);
+
+	firstConnectionTry = false;
+}
+
+void TrackerConnection::reconnect()
+{
+	connect(socket, SIGNAL(disconnected()), this, SLOT(reconnect()));
+	disconnect(requestTimer, SIGNAL(timeout()), this, SLOT(interval()));
+	firstConnectionTry = true;
+
+	connectToTracker();
 }
 
 void TrackerConnection::sendRequest()
@@ -58,14 +114,21 @@ void TrackerConnection::sendRequest()
 	std::cerr << request.getRequest() << std::endl;
 	socket->flush();
 
-	currentState = State::AWAITING;
+	setState(ConnectionStatus::AWAITING);
+}
+
+void TrackerConnection::setState(ConnectionStatus state)
+{
+	currentState = state;
+
+	emit statusChanged(currentState);
 }
 
 void TrackerConnection::startRequest()
 {
 	mutex->lock();
 
-	if (currentState == State::INIT)
+	if (currentState == ConnectionStatus::INIT)
 	{
 		request.setEvent("started");
 		sendRequest();
@@ -78,18 +141,27 @@ void TrackerConnection::stopRequest()
 {
 	mutex->lock();
 
-	if (currentState == State::AWAITING)
+	disconnect(socket, SIGNAL(disconnected()), this, SLOT(reconnect()));
+
+	if (currentState == ConnectionStatus::AWAITING)
 	{
 		inActiveState->wait(mutex);
 	}
-	if (currentState == State::ACTIVE)
+	if (currentState == ConnectionStatus::ACTIVE)
 	{
 		request.setEvent("stopped");
 		requestTimer->stop();
 		sendRequest();
 		socket->waitForDisconnected();
-		currentState = State::CLOSED;
+		setState(ConnectionStatus::CLOSED);
 		inActiveState->wakeAll();
+	}
+
+	socket->disconnect();
+
+	if(!socket->waitForDisconnected(1000))
+	{
+		socket->abort();
 	}
 
 	mutex->unlock();
@@ -99,11 +171,11 @@ void TrackerConnection::completeRequest()
 {
 	mutex->lock();
 
-	if (currentState == State::AWAITING)
+	if (currentState == ConnectionStatus::AWAITING)
 	{
 		inActiveState->wait(mutex);
 	}
-	if (currentState == State::ACTIVE)
+	if (currentState == ConnectionStatus::ACTIVE)
 	{
 		request.setEvent("completed");
 		sendRequest();
@@ -132,7 +204,7 @@ void TrackerConnection::regularRequest()
 {
 	mutex->lock();
 
-	if (currentState != State::ACTIVE)
+	if (currentState != ConnectionStatus::ACTIVE)
 	{
 		return;
 	}
@@ -203,7 +275,7 @@ void TrackerConnection::decodeResponse()
 			emit peerListUpdated(peers);
 		}
 
-		currentState = State::ACTIVE;
+		setState(ConnectionStatus::ACTIVE);
 		inActiveState->wakeOne();
 
 		std::wcerr << buf << std::endl;

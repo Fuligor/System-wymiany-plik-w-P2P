@@ -3,8 +3,6 @@
 #include <QWidget>
 #include "ui_ShareFileWindow.h"
 
-#include <map>
-
 class QFileDialog;
 
 class ShareFileWindow : public QWidget
@@ -14,7 +12,6 @@ class ShareFileWindow : public QWidget
 
 	QWidget* prevWindow;
     QFileDialog* fileDialog;
-	std::map <std::string, size_t> idToRow;
 public:
 	ShareFileWindow(QWidget* prevWindow, QWidget *parent = Q_NULLPTR);
 	~ShareFileWindow();

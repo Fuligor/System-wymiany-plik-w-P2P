@@ -9,6 +9,7 @@
 #include <QMutex>
 
 #include "Bencode.h"
+#include "ConnectionStatus.h"
 #include "Peer.h"
 #include "torrentReader.h"
 #include "TrackerRequest.h"
@@ -16,37 +17,39 @@
 class QTcpSocket;
 class QTimer;
 
+class TorrentDownloader;
+
 class TrackerConnection
         : public QObject
 {
     Q_OBJECT
 
 private:
-    enum class State
-    {
-        INIT,
-        ACTIVE,
-        AWAITING,
-        CLOSED
-    } currentState;
+    ConnectionStatus currentState;
 
     QMutex* mutex;
     QWaitCondition* inActiveState;
     QTcpSocket* socket;
     QTimer* requestTimer;
+    QTimer* connectTimer;
     TrackerRequest request;
     bencode::Utf8Decoder utf8decoder;
     bencode::Decoder decoder;
     std::wstring buf;
     bool isUpdateSheduled;
     bool isTimerTimeouted;
+
+    QString adress;
+    quint16 port;
+    bool firstConnectionTry = true;
 public:
-    TrackerConnection(const std::shared_ptr <bencode::Dict>& torrentDict, QObject* parent = nullptr);
+    TrackerConnection(const std::shared_ptr <bencode::Dict>& torrentDict, TorrentDownloader* parent);
     ~TrackerConnection();
 protected:
     void initRequest();
-    void connectToTracker(const std::shared_ptr <bencode::Dict>& torrentDict);
+    void initConnection(const std::shared_ptr <bencode::Dict>& torrentDict);
     void sendRequest();
+    void setState(ConnectionStatus state);
 
 public slots:
     void startRequest();
@@ -57,6 +60,10 @@ public slots:
 protected slots:
     void interval();
     void regularRequest();
+    void connectToTracker();
+    void onConnection();
+    void retryConnect();
+    void reconnect();
 
 public slots:
     void read();
@@ -66,6 +73,7 @@ protected:
 
 signals:
     void trackerDisconnected();
+    void statusChanged(const ConnectionStatus& status);
     void peerListUpdated(bencode::List peerList);
 };
 

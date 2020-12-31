@@ -26,15 +26,7 @@ void TorrentManager::updateDownloadList()
 
 TorrentManager::~TorrentManager()
 {
-	for(auto i: fileList)
-	{
-		if(i.second == nullptr)
-		{
-			continue;
-		}
-
-		delete i.second;
-	}
+	clear();
 }
 
 TorrentManager& TorrentManager::getInstance()
@@ -62,6 +54,21 @@ Torrent* const TorrentManager::operator[](const std::string& infoHash)
 void TorrentManager::append(const std::string& infoHash, Torrent* torrent)
 {
 	fileList[infoHash] = torrent;
+}
+
+void TorrentManager::clear()
+{
+	for (auto i : fileList)
+	{
+		if (i.second == nullptr)
+		{
+			continue;
+		}
+
+		delete i.second;
+
+		fileList.erase(i.first);
+	}
 }
 
 TorrentManager* TorrentManager::manager = nullptr;

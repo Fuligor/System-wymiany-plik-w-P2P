@@ -1,13 +1,17 @@
 #ifndef BIT_SET_H
 #define BIT_SET_H
+#include <stddef.h>
 
 class BitSet
 {
+	using pageType = unsigned char;
+
 	unsigned char* data;
 	size_t size;
 	size_t count;
-	size_t pages;
+	int pages;
 protected:
+	size_t countBits(unsigned char i);
 	void updateStatistics();
 public:
 	BitSet(const size_t size);
@@ -22,6 +26,9 @@ public:
 
 	size_t getSize() const;
 	size_t getCount() const;
+	size_t getDataSize() const;
 	const char* const getData();
+
+	static size_t getPageCount(const size_t size);
 };
 #endif

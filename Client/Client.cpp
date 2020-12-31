@@ -68,12 +68,12 @@ const std::string& Client::getConfigPath()
     return Client::configPath;
 }
 
-void Client::shareFile(const std::wstring& fileName, const std::wstring& trackerAddres, const size_t pieceSize)
+void Client::shareFile(const std::string& fileName, const std::string& trackerAddres, const size_t pieceSize)
 {
     TorrentFile file(fileName, trackerAddres, pieceSize);
     file.createFile();
 
-    new Torrent(fileName + L".torrent", fileName);
+    new Torrent(fileName + ".torrent", fileName);
 }
 
 Client* Client::sigleInstance = nullptr;

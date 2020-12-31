@@ -27,6 +27,8 @@ public:
 	void append(const std::string& infoHash, Torrent* torrent);
 signals:
 	void torrentStatusUpdated(const std::string, const TorrentDownloadStatus*);
+public slots:
+	void clear();
 };
 
 #endif
