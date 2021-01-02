@@ -28,6 +28,7 @@ public:
 	size_t getCount() const;
 	size_t getDataSize() const;
 	const char* const getData();
+	void setData(unsigned char* data);
 
 	static size_t getPageCount(const size_t size);
 };

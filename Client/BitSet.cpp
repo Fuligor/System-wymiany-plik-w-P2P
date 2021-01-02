@@ -52,18 +52,12 @@ BitSet::BitSet(const size_t size)
 }
 
 BitSet::BitSet(unsigned char* bits, const size_t size)
-	:size(size)
 {
+	this->size = size;
 	pages = getPageCount(size);
 
 	data = new unsigned char[pages];
-
-	for(size_t i = 0; i < pages; ++i)
-	{
-		data[i] = bits[i];
-	}
-
-	updateStatistics();
+	setData(bits);
 }
 
 BitSet::~BitSet()
@@ -145,6 +139,17 @@ size_t BitSet::getDataSize() const
 const char* const BitSet::getData()
 {
 	return (char*) data;
+}
+
+void BitSet::setData(unsigned char* bits)
+{
+	
+	for (size_t i = 0; i < pages; ++i)
+	{
+		data[i] = bits[i];
+	}
+
+	updateStatistics();
 }
 
 size_t BitSet::getPageCount(const size_t size)
