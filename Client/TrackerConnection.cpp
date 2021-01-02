@@ -6,9 +6,9 @@
 #include "Client.h"
 #include "TorrentDownloader.h"
 
-TrackerConnection::TrackerConnection(const std::shared_ptr <bencode::Dict>& torrentDict, TorrentDownloader* parent)
+TrackerConnection::TrackerConnection(const std::shared_ptr <bencode::Dict>& torrentDict, quint16 listenerPort, TorrentDownloader* parent)
 	:QObject(parent), socket(new QTcpSocket(this)), requestTimer(new QTimer(this)), connectTimer(new QTimer(this)), mutex(new QMutex()),
-	inActiveState(new QWaitCondition()), request(torrentDict)
+	inActiveState(new QWaitCondition()), request(torrentDict), listenerPort(listenerPort)
 {
 	connect(socket, SIGNAL(connected()), this, SLOT(onConnection()));
 	//connect(socket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(onConnection()));
@@ -42,7 +42,7 @@ void TrackerConnection::initRequest()
 {
 	mutex->lock();
 	request.setPeer_id(Client::getInstance()->getId());
-	request.setPort(0);
+	request.setPort(listenerPort);
 	request.setUploaded(0);
 	request.setDownloaded(0);
 	request.setCompact(false);
