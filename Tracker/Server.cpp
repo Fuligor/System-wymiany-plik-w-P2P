@@ -16,7 +16,7 @@
 #include <algorithm>
 
 #include "Connection.h"
-#include "../TorrentFile/Peer.h"
+#include "Peer.h"
 
 void *readData(void *data)
 {
@@ -39,7 +39,7 @@ void *readData(void *data)
 
             if (size <= 0)
             {
-                perror("Socket\n");
+                perror("Socket");
 
                 delete connection;
 
@@ -103,7 +103,7 @@ void Server::initEpoll()
 }
 
 Server::Server()
-    : state(0)
+    : state(0), configPath("config")
 {
     std::srand(time(NULL));
 }
@@ -196,26 +196,9 @@ void Server::run()
     close(socket_desc);
 }
 
-void Server::addPeer(const std::wstring *info_hash, const Peer &peer)
+TorrentInstanceInfo& Server::getTorrentInfo(const std::wstring *info_hash)
 {
-    peers[*info_hash].push_back(peer);
-}
-void Server::removePeer(const std::wstring *info_hash, const Peer &peer)
-{
-    for(int i = 0; i < peers[*info_hash].size(); ++i)
-    {
-        if(peers[*info_hash][i].id == peer.id)
-        {
-            peers[*info_hash].erase(peers[*info_hash].begin() + i);
-            break;
-        }
-    }
-}
-const std::vector<Peer> & Server::getRandomPeers(const std::wstring *info_hash)
-{
-    std::random_shuffle(peers[*info_hash].begin(), peers[*info_hash].end());
-
-    return peers[*info_hash];
+    return TorrentInstances[*info_hash];
 }
 
 Server *Server::server = nullptr;

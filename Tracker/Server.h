@@ -4,8 +4,11 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include <vector>
+#include <cstdint>
+
 #include <unordered_map>
+
+#include "TorrentInstanceInfo.h"
 
 struct Peer;
 
@@ -13,16 +16,14 @@ class Server
 {
 private:
     static Server* server;
+    const std::string configPath;
 
     sockaddr_in address;
     int socket_desc;
     int socketEpoll;
     int state;
 
-    std::unordered_map <std::wstring, std::vector <Peer>> peers;
-public:
-    size_t completed = 0;
-    size_t incompleted = 0;
+    std::unordered_map <std::wstring, TorrentInstanceInfo> TorrentInstances;
 protected:
     void bindSocket(int port);
     void initListen(unsigned int queueSize);
@@ -38,9 +39,9 @@ public:
     int getSocketEpoll();
     bool isRunning();
 
-    void addPeer(const std::wstring* info_hash, const Peer& peer);
-    void removePeer(const std::wstring* info_hash, const Peer& peer);
-    const std::vector <Peer>& getRandomPeers(const std::wstring *info_hash); 
+    TorrentInstanceInfo& getTorrentInfo(const std::wstring *info_hash); 
 
     void run();
+
+    const std::string& getConfigPath() const;
 };
