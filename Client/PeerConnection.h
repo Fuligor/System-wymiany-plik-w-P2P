@@ -12,11 +12,10 @@
 #include "ConnectionStatus.h"
 #include "Peer.h"
 #include "File.h"
+#include "FileFrag.h"
 #include "torrentReader.h"
-
+#include "BitSet.h"
 class QTcpSocket;
-class QTimer;
-class BitSet;
 class TorrentDownloader;
 
 class PeerConnection
@@ -32,28 +31,29 @@ private:
     quint16 port;
     std::string infoHash;
     std::string buffor;
+    BitSet havePieces;
+    std::string fragBuff;
+    size_t toDownload;
 
-    bool amchoked;
+    /*bool amchoked;
     bool peerchoked;
     bool aminterested;
     bool peerinterested;
-    bool isInitialized;
+    bool isInitialized;*/
 public:
     PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File* mFile, TorrentDownloader* parent);
     ~PeerConnection();
 
 protected slots:
     void handshake();
-    void choke();
+    /*void choke();
     void unchoke();
     void interested();
-    void not_interested();
-    void have(int index);
+    void not_interested();*/
+    void have(size_t index);
     void bitfield(BitSet& pieces);
     void request(int index, int begin, int length);
     void piece(int index, int begin, std::string block);
-    //void cancel();
-    //void port();
     void readData();
 signals:
     void pieceDownloaded(size_t index);

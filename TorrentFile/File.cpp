@@ -21,7 +21,7 @@ File::File(const QString& name, const size_t& fragSize, QObject* parent)
 	}
 }
 
-File::File(const QString& name, const size_t& fragSize, const size_t& fileSize, QObject* parent = nullptr)
+File::File(const QString& name, const size_t& fragSize, const size_t& fileSize, QObject* parent)
 	:mFile(new QFile(name, this)), QObject(parent), mFragSize(fragSize)
 {
 	mFile->open(QIODevice::ReadWrite);

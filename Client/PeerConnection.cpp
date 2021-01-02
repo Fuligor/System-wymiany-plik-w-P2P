@@ -3,11 +3,15 @@
 #include <algorithm>
 #include "TorrentDownloader.h"
 #include "Client.h"
+
 PeerConnection::PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File* mFile, TorrentDownloader* parent)
-	:QObject(parent), socket(tcpSocket), isInitialized(false), infoHash(infoHash), mFile(mFile), amchoked(true), aminterested(false), peerchoked(true), peerinterested(false)
+	:QObject(parent), socket(tcpSocket), /*isInitialized(false),*/ infoHash(infoHash), mFile(mFile), /*amchoked(true), aminterested(false), peerchoked(true), peerinterested(false),*/ 
+	havePieces(mFile->getSize()), fragBuff("")
 {
+	
 	connect(socket, SIGNAL(readyRead()), this, SLOT(readData()));
 	connect(this, SIGNAL(pieceDownloaded(size_t)), parent, SLOT(onPieceDownloaded(size_t)));
+	connect(parent, SIGNAL(pieceDownloaded(size_t)), this, SLOT(have(size_t)));
 
 }
 
@@ -15,36 +19,37 @@ PeerConnection::~PeerConnection()
 {
 }
 
-void PeerConnection::choke()
-{
-	std::string message = "00010";
-	socket->write(message.data(), message.size());
-}
+//void PeerConnection::choke()
+//{
+//	std::string message = "00010";
+//	socket->write(message.data(), message.size());
+//}
+//
+//void PeerConnection::unchoke()
+//{
+//	std::string message = "00011";
+//	socket->write(message.data(), message.size());
+//}
+//
+//void PeerConnection::interested()
+//{
+//	std::string message = "00012";
+//	socket->write(message.data(), message.size());
+//}
+//
+//void PeerConnection::not_interested()
+//{
+//	std::string message = "00013";
+//	socket->write(message.data(), message.size());
+//}
 
-void PeerConnection::unchoke()
-{
-	std::string message = "00011";
-	socket->write(message.data(), message.size());
-}
-
-void PeerConnection::interested()
-{
-	std::string message = "00012";
-	socket->write(message.data(), message.size());
-}
-
-void PeerConnection::not_interested()
-{
-	std::string message = "00013";
-	socket->write(message.data(), message.size());
-}
-
-void PeerConnection::have(int index)
+void PeerConnection::have(size_t index)
 {
 	std::string idx = std::to_string(index);
 	std::reverse(idx.begin(), idx.end());
 	idx.resize(4, '0');
 	std::reverse(idx.begin(), idx.end());
+
 	std::string message = "00054" + idx;
 	socket->write(message.data(), message.size());
 }
@@ -52,8 +57,8 @@ void PeerConnection::have(int index)
 void PeerConnection::bitfield(BitSet& pieces)
 {
 
-	size_t size = pieces.getSize() + 1;
-	std::string message = std::to_string(size) + "5" + pieces.to_string();
+	size_t size = BitSet::getPageCount(pieces.getSize()) + 1;
+	std::string message = std::to_string(size) + "5" + std::string(pieces.getData(), BitSet::getPageCount(pieces.getSize()));
 	socket->write(message.data(), message.size());
 }
 
@@ -117,7 +122,7 @@ void PeerConnection::readData()
 		if (message_size <= buffor.size() - 4)
 		{
 			std::string message = buffor.substr(5, message_size);
-			if (message[0] == '0')
+			/*if (message[0] == '0')
 			{
 				peerchoked = true;
 			}
@@ -132,26 +137,37 @@ void PeerConnection::readData()
 			else if (message[0] == '3')
 			{
 				peerinterested = false;
-			}
-			else if (message[0] == '4')
+			}*/
+			if (message[0] == '4')
 			{
-
+				havePieces.set(std::stoi(message.substr(1, message_size-1)));
 			}
 			else if (message[0] == '5')
 			{
-
+				havePieces.setData((unsigned char *)message.substr(1, message_size - 1).c_str());
 			}
 			else if (message[0] == '6')
 			{
-
+				int index = std::stoi(message.substr(1, 4));
+				int begin = std::stoi(message.substr(5, 4));
+				int length = std::stoi(message.substr(9, 4));
+				piece(index, begin, (*mFile)[index]->getData().mid(begin, length).toStdString());
 			}
 			else if (message[0] == '7')
 			{
-
+				int index = std::stoi(message.substr(1, 4));
+				//int begin = std::stoi(message.substr(5, 4));
+				std::string block = message.substr(9);
+				fragBuff += block;
+				if (fragBuff.size() == toDownload)
+				{
+					mFile->setFrag(fragBuff, index);
+					fragBuff = "";
+					emit pieceDownloaded(index);
+				}
 			}
 			buffor.erase(0, message_size + 4);
 		}
 	}
-	//mFile->setFrag(frag, index);
-	//emit pieceDownloaded(index);
+
 }
