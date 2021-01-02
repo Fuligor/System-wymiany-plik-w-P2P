@@ -10,19 +10,29 @@
 File::File(const QString& name, const size_t& fragSize, QObject* parent)
 	:mFile(new QFile(name, this)), QObject(parent), mFragSize(fragSize)
 {
-	mFile->open(QIODevice::ReadOnly);
-	unsigned int fragCount = ceil((double) mFile->size() / mFragSize);
+	mFile->open(QIODevice::ReadWrite);
+	mFileSize = mFile->size();
+	unsigned int fragCount = ceil((double) mFileSize / mFragSize);
 	mFileFragments.reserve(fragCount);
 
-	for(unsigned int position = 0; position < mFile->size(); position += fragSize)
+	for(unsigned int position = 0; position < mFileSize; position += fragSize)
 	{
-		mFileFragments.push_back(new FileFrag(mFile, position, mFragSize, this));
+		mFileFragments.push_back(new FileFrag(mFile, position, mFragSize, &mutex, this));
 	}
 }
 
-File::File(const QString& name, const size_t& fragSize)
-	: File(name, fragSize, NULL)
+File::File(const QString& name, const size_t& fragSize, const size_t& fileSize, QObject* parent = nullptr)
+	:mFile(new QFile(name, this)), QObject(parent), mFragSize(fragSize)
 {
+	mFile->open(QIODevice::ReadWrite);
+	mFileSize = fileSize;
+	unsigned int fragCount = ceil((double)mFileSize / mFragSize);
+	mFileFragments.reserve(fragCount);
+
+	for (unsigned int position = 0; position < mFileSize; position += fragSize)
+	{
+		mFileFragments.push_back(new FileFrag(mFile, position, mFragSize, &mutex, this));
+	}
 }
 
 File::~File()
@@ -30,14 +40,14 @@ File::~File()
 	mFile->close();
 }
 
-const FileFrag* File::operator[](const unsigned int index) const
+FileFrag* File::operator[](const unsigned int index)
 {
 	return mFileFragments[index];
 }
 
 const size_t File::getSize() const
 {
-	return mFile->size();
+	return mFileSize;
 }
 
 const size_t File::getFragSize() const
@@ -60,6 +70,11 @@ const std::string File::getFragsHash() const
 	}
 
 	return result;
+}
+
+void File::setFrag(std::string frag, int index)
+{
+	mFileFragments[index]->setData(frag);
 }
 
 QVector <FileFrag*>::const_iterator File::begin() const
