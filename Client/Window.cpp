@@ -11,6 +11,7 @@ Window::Window(QWidget *parent)
     ui.setupUi(this);
     client = Client::getInstance();
     shareFileWindow = new ShareFileWindow(ui.MainWidget, nullptr);
+    downloadFileWindow = new DownloadFileWindow(ui.MainWidget, nullptr);
     ui.DownloadedFiles->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     QStringList headerLabel;
@@ -25,6 +26,8 @@ Window::Window(QWidget *parent)
 
     connect(ui.ShareNewFile, SIGNAL(clicked()), shareFileWindow, SLOT(init()));
     connect(ui.ShareNewFile, SIGNAL(clicked()), shareFileWindow, SLOT(show()));
+    connect(ui.DownloadNewFIles, SIGNAL(clicked()), downloadFileWindow, SLOT(init()));
+    connect(ui.DownloadNewFIles, SIGNAL(clicked()), downloadFileWindow, SLOT(show()));
     connect(&TorrentManager::getInstance(), SIGNAL(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)), this, SLOT(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)));
 
     TorrentManager::getInstance().updateDownloadList();
