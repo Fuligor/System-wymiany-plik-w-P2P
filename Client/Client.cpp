@@ -4,6 +4,8 @@
 #include <QDateTime>
 #include <QDir>
 
+#include <cstdlib>
+#include <ctime>
 #include <iostream>
 
 #include "Torrent.h"
@@ -22,6 +24,7 @@ void toString(quint64 value, char* string)
 Client::Client()
     :QObject(nullptr), myId(createId())
 {
+    std::srand(std::time(NULL));
     QDir config(configPath.c_str());
     if(!config.exists())
     {

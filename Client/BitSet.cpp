@@ -65,6 +65,27 @@ BitSet::~BitSet()
 	delete[] data;
 }
 
+BitSet BitSet::operator~() const
+{
+
+	unsigned char* result = new unsigned char[pages];
+	for (int i = 0; i < pages; i++)
+	{
+		result[i] = ~data[i];
+	}
+	return BitSet(result, pages);
+}
+
+BitSet BitSet::operator&(const BitSet& bitset) const
+{
+	unsigned char* result = new unsigned char[pages];
+	for (int i = 0; i < pages; i++)
+	{
+		result[i] = data[i] & bitset.data[i];
+	}
+	return BitSet(result, pages);
+}
+
 void BitSet::set()
 {
 	if(pages == 0)
@@ -119,6 +140,32 @@ bool BitSet::bit(size_t index)
 	unsigned char mask = 1 << (index % 8);
 
 	return data[index / 8] & mask;
+}
+
+size_t BitSet::getSetedBit(size_t index)
+{
+	size_t count = 0;
+	for (int i = 0; i < pages; i++)
+	{
+		count += countBits(data[i]);
+		if (count > index)
+		{
+			for (int j = 7; j >= 0; j--)
+			{
+				count -= bit(i * (size_t)8 + j);
+				if (count == index)
+				{
+					return count;
+				}
+				
+			}
+		}
+		else if (count == index)
+		{
+			return count;
+		}
+	}
+	return count;
 }
 
 size_t BitSet::getSize() const
