@@ -1,6 +1,7 @@
 #ifndef PEER_H
 #define PEER_H
 #include <string>
+#include <cstdint>
 
 struct Peer
 {
@@ -8,9 +9,10 @@ struct Peer
 	std::string address;
 	unsigned int port;
 
-	bool operator < (const Peer other) const
+	bool operator < (const Peer& other) const
 	{
 		return id < other.id;
 	}
 };
+
 #endif

@@ -4,6 +4,8 @@
 #include <QDateTime>
 #include <QDir>
 
+#include <cstdlib>
+#include <ctime>
 #include <iostream>
 
 #include "Torrent.h"
@@ -22,6 +24,7 @@ void toString(quint64 value, char* string)
 Client::Client()
     :QObject(nullptr), myId(createId())
 {
+    std::srand(std::time(NULL));
     QDir config(configPath.c_str());
     if(!config.exists())
     {
@@ -71,6 +74,11 @@ void Client::shareFile(const std::string& fileName, const std::string& trackerAd
     file.createFile();
 
     new Torrent(fileName + ".torrent", fileName);
+}
+
+void Client::downloadFile(const std::string& torrentPath, const std::string& downloadPath)
+{
+    new Torrent(torrentPath, downloadPath);
 }
 
 Client* Client::sigleInstance = nullptr;

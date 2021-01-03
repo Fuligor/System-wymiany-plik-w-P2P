@@ -61,7 +61,7 @@
           <bool>false</bool>
          </property>
          <property name="text">
-          <string>Udostępnij nowe pliki</string>
+          <string>Udostępnij nowy plik</string>
          </property>
          <property name="checkable">
           <bool>false</bool>
@@ -81,30 +81,6 @@
          </property>
          <property name="text">
           <string>Pobierz nowy plik</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="ContinueDownload">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="sizePolicy">
-          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-           <horstretch>0</horstretch>
-           <verstretch>0</verstretch>
-          </sizepolicy>
-         </property>
-         <property name="font">
-          <font>
-           <pointsize>12</pointsize>
-          </font>
-         </property>
-         <property name="styleSheet">
-          <string notr="true"/>
-         </property>
-         <property name="text">
-          <string>Wznów pobieranie</string>
          </property>
         </widget>
        </item>

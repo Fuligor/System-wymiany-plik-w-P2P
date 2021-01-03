@@ -41,9 +41,10 @@ private:
 
     QString adress;
     quint16 port;
+    quint16 listenerPort;
     bool firstConnectionTry = true;
 public:
-    TrackerConnection(const std::shared_ptr <bencode::Dict>& torrentDict, TorrentDownloader* parent);
+    TrackerConnection(const std::shared_ptr <bencode::Dict>& torrentDict, quint16 listenerPort, TorrentDownloader* parent);
     ~TrackerConnection();
 
     void setLeft(size_t left);

@@ -5,6 +5,7 @@
 
 #include "Client.h"
 #include "ShareFileWindow.h"
+#include "DownloadFileWindow.h"
 
 #include <map>
 
@@ -16,6 +17,7 @@ class Window : public QMainWindow
 
     Client* client;
     ShareFileWindow* shareFileWindow;
+    DownloadFileWindow* downloadFileWindow;
 
     std::map <std::string, size_t> idToRow;
 public:

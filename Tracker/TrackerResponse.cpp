@@ -1,5 +1,5 @@
 #include "TrackerResponse.h"
-#include "../TorrentFile/Peer.h"
+#include "Peer.h"
 
 TrackerResponse::TrackerResponse(){}
 TrackerResponse::~TrackerResponse(){}

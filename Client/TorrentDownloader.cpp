@@ -1,21 +1,23 @@
 #include "TorrentDownloader.h"
 
 #include "Types.h"
-
+#include "InfoDictHash.h"
 #include "Torrent.h"
 #include "TrackerConnection.h"
 #include "PeerConnection.h"
 
 TorrentDownloader::TorrentDownloader(const std::shared_ptr <bencode::Dict>& torrentDict, BitSet& pieces, Torrent* parent)
-	:QObject(parent), pieces(pieces), tracker(new TrackerConnection(torrentDict, this))
+	:QObject(parent), pieces(pieces), tcpServer(this), isAwaitingPeer(false), piecesToDownload(~pieces)
 {
 	std::shared_ptr <bencode::Dict> info = std::dynamic_pointer_cast <bencode::Dict> ((*torrentDict)["info"]);
-
+	infoHash = InfoDictHash::getHash(torrentDict);
+	tcpServer.listen();
+	tracker = new TrackerConnection(torrentDict, tcpServer.serverPort(), this);
 	pieceSize = std::dynamic_pointer_cast <bencode::Int> ((*info)["piece length"])->getValue();
-
+	
 	downloadStatus.fileName = std::dynamic_pointer_cast <bencode::String> ((*info)["name"])->data();
 	downloadStatus.fileSize = std::dynamic_pointer_cast <bencode::Int> ((*info)["length"])->getValue();
-
+	mFile = new File(QString::fromStdWString(downloadStatus.fileName), pieceSize, downloadStatus.fileSize);
 	connect(this, SIGNAL(pieceDownloaded(size_t)), this, SIGNAL(statusUpdated()));
 	connect(this, SIGNAL(pieceUploaded(size_t)), this, SIGNAL(statusUpdated()));
 
@@ -34,9 +36,36 @@ const TorrentDownloadStatus& TorrentDownloader::getDownloadStatus() const
 	return downloadStatus;
 }
 
+void TorrentDownloader::createConnection()
+{
+	QString addres = QString::fromStdString(availablePeers.begin()->id);
+	QTcpSocket* socket = new QTcpSocket(this);
+	socket->connectToHost(addres, availablePeers.begin()->port);
+	availablePeers.erase(availablePeers.begin());
+	activeConn++;
+	new PeerConnection(socket, infoHash, mFile, this);
+
+}
+
+void TorrentDownloader::connectionManager()
+{
+	if (activeConn < maxConn)
+	{
+		if (availablePeers.size() > 0)
+		{
+			createConnection();
+		}
+		else
+		{
+			tracker->updatePeerList();
+		}
+		
+	}
+}
+
 size_t TorrentDownloader::getPieceSize(size_t index)
 {
-	if(index == pieces.getSize() - 1)
+	if (index == pieces.getSize() - 1)
 	{
 		return downloadStatus.fileSize - (pieces.getSize() - 1) * pieceSize;
 	}
@@ -44,9 +73,11 @@ size_t TorrentDownloader::getPieceSize(size_t index)
 	return pieceSize;
 }
 
+
+
 void TorrentDownloader::calculateDownloadedSize()
 {
-	if(pieces.getSize() == 0)
+	if (pieces.getSize() == 0)
 	{
 		downloadStatus.downloadedSinceStart = 0;
 	}
@@ -76,7 +107,7 @@ void TorrentDownloader::onTrackerStatusChanged(const ConnectionStatus& status)
 		downloadStatus.connectionState = TorrentDownloadStatus::State::CLOSED;
 		break;
 	default:
-		if(downloadStatus.downloadedSinceStart == downloadStatus.fileSize)
+		if (downloadStatus.downloadedSinceStart == downloadStatus.fileSize)
 		{
 			downloadStatus.connectionState = TorrentDownloadStatus::State::SEEDING;
 		}
@@ -88,6 +119,65 @@ void TorrentDownloader::onTrackerStatusChanged(const ConnectionStatus& status)
 	}
 
 	emit statusUpdated();
+}
+
+void TorrentDownloader::onNewConnection()
+{
+	new PeerConnection(tcpServer.nextPendingConnection(), infoHash, mFile, this);
+
+}
+
+void TorrentDownloader::peerHandshake(std::string peerId, PeerConnection* connection)
+{
+	if (connectedPeers.find(peerId) == connectedPeers.end())
+	{
+		connectedPeers.insert(peerId);
+	}
+	else
+	{
+		delete connection;
+		activeConn--;
+		if (pieces.getSize() > pieces.getCount())
+		{
+			connectionManager();
+		}
+	}
+	
+	
+}
+
+void TorrentDownloader::closeConnection(std::string peerId, PeerConnection* connection)
+{
+	connectedPeers.erase(peerId);
+	delete connection;
+	activeConn--;
+	if (pieces.getSize() > pieces.getCount())
+	{
+		connectionManager();
+	}
+}
+
+void TorrentDownloader::downloadMenager(PeerConnection* connection)
+{
+	mutex.lock();
+	if (connection->getIsDownloading())
+	{
+		mutex.unlock();
+		return;
+	}
+	
+	BitSet interestingPieces = piecesToDownload & connection->getPieces();
+	size_t size = interestingPieces.getCount();
+	if (size > 0)
+	{
+		size_t randomPiece = std::rand() % size + 1;
+		size_t index = interestingPieces.getSetedBit(randomPiece);
+		piecesToDownload.reset(index);
+		connection->downloadPiece(index, getPieceSize(index), (*mFile)[index]->getHash().toStdString());
+	}
+	mutex.unlock();
+	
+
 }
 
 void TorrentDownloader::onPieceDownloaded(size_t index)
@@ -116,7 +206,7 @@ void TorrentDownloader::onPieceUploaded(size_t index)
 
 void TorrentDownloader::updatePeerList(bencode::List peers)
 {
-	for(auto i: peers)
+	for (auto i : peers)
 	{
 		bencode::Dict peerDict = *(dynamic_cast <bencode::Dict*> (i.get()));
 		Peer peer;
@@ -128,10 +218,11 @@ void TorrentDownloader::updatePeerList(bencode::List peers)
 		peer.address = std::string(buf.begin(), buf.end());
 
 		peer.port = dynamic_cast <bencode::Int*> (peerDict["port"].get())->getValue();
-
-		if(availablePeers.insert(peer).second)
+		mutex.lock();
+		if (connectedPeers.find(peer.id) == connectedPeers.end() && availablePeers.insert(peer).second)
 		{
-			emit peerAdded();
+			connectionManager();
 		}
+		mutex.unlock();
 	}
 }

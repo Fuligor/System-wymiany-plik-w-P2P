@@ -18,6 +18,8 @@ set(SOURCES
     "Server.h"
     "Connection.cpp"
     "Connection.h"
+    "TorrentInstanceInfo.cpp"
+    "TorrentInstanceInfo.h"
     "TrackerResponse.cpp"
     "TrackerResponse.h"
 )

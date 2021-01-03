@@ -15,8 +15,6 @@ ShareFileWindow::ShareFileWindow(QWidget* prevWindow, QWidget *parent)
     hide();
     fileDialog->setModal(true);
 
-	connect(ui.Cancel, SIGNAL(clicked()), prevWindow, SLOT(show()));
-	connect(ui.Share, SIGNAL(clicked()), prevWindow, SLOT(show()));
     connect(ui.listFiles, SIGNAL(clicked()), fileDialog, SLOT(show()));
     connect(fileDialog, SIGNAL(accepted()), this, SLOT(fileSelected()));
     connect(ui.Share, SIGNAL(clicked()), this, SLOT(shareFile()));

@@ -124,7 +124,7 @@ void Torrent::read()
 	read(pieceCount);
 	buffer = new char[pieceCount];
 
-	file->read(buffer, BitSet::getPageNumber(pieceCount));
+	file->read(buffer, BitSet::getPageCount(pieceCount));
 	status.pieceStatus = BitSet((unsigned char*) buffer, pieceCount);
 
 	read(torrentPathLenght);
@@ -168,7 +168,7 @@ void Torrent::onPieceDownloaded(const size_t& index)
 {
 	status.pieceStatus.set(index);
 
-	updatePage(BitSet::getPageNumber(index));
+	updatePage(BitSet::getPageCount(index));
 }
 
 void Torrent::downloadStatusUpdated()

@@ -21,6 +21,10 @@ protected:
     int interval;
     sockaddr_in* address;
 
+    std::shared_ptr <std::wstring> info_hash;
+    Peer* peer;
+    bool completed;
+
     int socket;
 
     std::wstring buf;
@@ -32,6 +36,7 @@ public:
     ~Connection();
 
     void closeConnection();
+    Peer readPeerInfo(bencode::Dict &request);
     int getSocket();
 
     void addToBuffer(const char* data, size_t size);

@@ -41,7 +41,7 @@ void BitSet::updateStatistics()
 BitSet::BitSet(const size_t size)
 	:size(size), count(0)
 {
-	pages = getPageNumber(size);
+	pages = getPageCount(size);
 
 	data.reset(new unsigned char[pages]);
 
@@ -54,20 +54,36 @@ BitSet::BitSet(const size_t size)
 BitSet::BitSet(unsigned char* bits, const size_t size)
 	:size(size)
 {
-	pages = getPageNumber(size);
+	pages = getPageCount(size);
 
 	data.reset(new unsigned char[pages]);
 
-	for(size_t i = 0; i < pages; ++i)
-	{
-		data.get()[i] = bits[i];
-	}
-
-	updateStatistics();
+	setData(bits);
 }
 
 BitSet::~BitSet()
 {
+}
+
+BitSet BitSet::operator~() const
+{
+
+	unsigned char* result = new unsigned char[pages];
+	for (int i = 0; i < pages; i++)
+	{
+		result[i] = ~data.get()[i];
+	}
+	return BitSet(result, pages);
+}
+
+BitSet BitSet::operator&(const BitSet& bitset) const
+{
+	unsigned char* result = new unsigned char[pages];
+	for (int i = 0; i < pages; i++)
+	{
+		result[i] = data.get()[i] & bitset.data.get()[i];
+	}
+	return BitSet(result, pages);
 }
 
 void BitSet::set()
@@ -126,6 +142,32 @@ bool BitSet::bit(size_t index)
 	return data.get()[index / 8] & mask;
 }
 
+size_t BitSet::getSetedBit(size_t index)
+{
+	size_t count = 0;
+	for (int i = 0; i < pages; i++)
+	{
+		count += countBits(data.get()[i]);
+		if (count > index)
+		{
+			for (int j = 7; j >= 0; j--)
+			{
+				count -= bit(i * (size_t)8 + j);
+				if (count == index)
+				{
+					return count;
+				}
+				
+			}
+		}
+		else if (count == index)
+		{
+			return count;
+		}
+	}
+	return count;
+}
+
 size_t BitSet::getSize() const
 {
 	return size;
@@ -146,7 +188,18 @@ const char* const BitSet::getData()
 	return (char*) data.get();
 }
 
-size_t BitSet::getPageNumber(const size_t size)
+void BitSet::setData(unsigned char* bits)
+{
+	
+	for (size_t i = 0; i < pages; ++i)
+	{
+		data.get()[i] = bits[i];
+	}
+
+	updateStatistics();
+}
+
+size_t BitSet::getPageCount(const size_t size)
 {
 	return (size_t) ceil(size / 8.0);;
 }

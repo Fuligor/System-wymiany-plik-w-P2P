@@ -3,13 +3,8 @@
 #include <QFile>
 #include <QCryptographicHash>
 
-FileFrag::FileFrag(QFile* file, const unsigned int position, size_t size, QObject* parent)
-	: QObject(parent), mFile(file), mPosition(position), mSize(size)
-{
-}
-
-FileFrag::FileFrag(QFile* file, const unsigned int position, size_t size)
-	: FileFrag(file, position, size, NULL)
+FileFrag::FileFrag(QFile* file, const unsigned int position, size_t size, QMutex* mutex, QObject* parent)
+	: QObject(parent), mFile(file), mPosition(position), mSize(size), mutex(mutex)
 {
 }
 
@@ -21,6 +16,14 @@ void FileFrag::free() const
 {
 	mHash.clear();
 	mData.clear();
+}
+
+void FileFrag::setData(std::string frag)
+{
+	mutex->lock();
+	mFile->seek(mPosition);
+	mFile->write(frag.data(), frag.size());
+	mutex->unlock();
 }
 
 const QByteArray& FileFrag::getHash() const
@@ -39,9 +42,11 @@ const QByteArray& FileFrag::getData() const
 {
 	if (!mIsDataReaded)
 	{
+		mutex->lock();
 		mIsDataReaded = true;
 		mFile->seek(mPosition);
 		mData = mFile->read(mSize);
+		mutex->unlock();
 	}
 
 	return mData;
