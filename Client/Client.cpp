@@ -79,6 +79,11 @@ void Client::shareFile(const std::string& fileName, const std::string& trackerAd
     new Torrent(fileName + ".torrent", fileName);
 }
 
+void Client::downloadFile(const std::string& torrentPath, const std::string& downloadPath)
+{
+    new Torrent(torrentPath, downloadPath);
+}
+
 Client* Client::sigleInstance = nullptr;
 QMutex Client::mutex;
 const std::string Client::configPath = "config";

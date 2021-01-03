@@ -47,7 +47,7 @@ public:
     bool getIsDownloading();
 protected:
     std::string write(size_t size);
-    size_t read(std::string& size);
+    size_t read(const std::string& size);
 protected slots:
     void handshake();
     /*void choke();

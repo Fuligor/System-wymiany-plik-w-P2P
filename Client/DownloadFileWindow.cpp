@@ -19,8 +19,8 @@ DownloadFileWindow::DownloadFileWindow(QWidget* prevWindow, QWidget *parent)
     SavesDialog->setModal(true);
     SavesDialog->setFileMode(QFileDialog::Directory);
 
-	connect(ui.Cancel, SIGNAL(clicked()), prevWindow, SLOT(show()));
-	connect(ui.Download, SIGNAL(clicked()), prevWindow, SLOT(show()));
+	connect(ui.Cancel, SIGNAL(clicked()), this, SLOT(hide()));
+	connect(ui.Download, SIGNAL(clicked()), this, SLOT(hide()));
     connect(ui.listTorrents, SIGNAL(clicked()), TorrentsDialog, SLOT(show()));
     connect(TorrentsDialog, SIGNAL(accepted()), this, SLOT(torrentSelected()));
     connect(ui.listSaves, SIGNAL(clicked()), SavesDialog, SLOT(show()));
@@ -62,7 +62,7 @@ void DownloadFileWindow::saveSelected()
 
 void DownloadFileWindow::DownloadFile()
 {
-    //Client::getInstance()->shareFile(ui.fileName->text().toStdString(), ui.trackerURL->currentText().toStdString(), ui.pieceSize->value());
+    Client::getInstance()->downloadFile(ui.torrentName->text().toStdString(), ui.saveName->text().toStdString());
 }
 
 const size_t DownloadFileWindow::kB = 1024;

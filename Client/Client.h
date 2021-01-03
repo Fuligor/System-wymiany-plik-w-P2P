@@ -22,6 +22,7 @@ public:
     const std::string& getId() const;
     static const std::string& getConfigPath();
     void shareFile(const std::string& fileName, const std::string& trackerAddres, const size_t pieceSize);
+    void downloadFile(const std::string& torrentPath, const std::string& downloadPath);
 signals:
     void torrentAdded();
 };

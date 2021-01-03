@@ -13,7 +13,7 @@ PeerConnection::PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File
 	connect(this, SIGNAL(pieceDownloaded(size_t)), parent, SLOT(onPieceDownloaded(size_t)));
 	connect(parent, SIGNAL(pieceDownloaded(size_t)), this, SLOT(have(size_t)));
 	connect(this, SIGNAL(initialize(std::string, PeerConnection*)), parent, SLOT(peerHandshake(std::string, PeerConnection*)));
-	connect(socket, SIGNAL(disconnect()), this, SLOT(onDisconnection()));
+	connect(socket, SIGNAL(disconnected()), this, SLOT(onDisconnection()));
 	connect(this, SIGNAL(peerdisconnect(std::string, PeerConnection*)), parent, SLOT(closeConnection(std::string, PeerConnection*)));
 	connect(this, SIGNAL(downloadRequest(PeerConnection*)), parent, SLOT(downloadMenager(PeerConnection*)));
 }
@@ -49,7 +49,7 @@ std::string PeerConnection::write(size_t size)
 	}
 	return result;
 }
-size_t PeerConnection::read(std::string& size)
+size_t PeerConnection::read(const std::string& size)
 {
 	size_t result = 0;
 
