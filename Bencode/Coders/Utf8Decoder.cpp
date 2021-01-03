@@ -2,6 +2,8 @@
 
 #include <sstream>
 
+#include <iostream>
+
 void bencode::Utf8Decoder::decodeUtf8Char(std::istream& stream)
 {
 	if(count == 0)

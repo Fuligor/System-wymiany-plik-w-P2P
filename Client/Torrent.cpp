@@ -6,7 +6,6 @@
 #include "Client.h"
 #include "InfoDictHash.h"
 #include "TorrentDownloader.h"
-#include "TorrentFileStatus.h"
 #include "TorrentManager.h"
 #include "torrentReader.h"
 
@@ -79,6 +78,8 @@ void Torrent::write()
 	const size_t pieceCount = status.pieceStatus.getSize();
 	QByteArray buf;
 
+	file->seek(0);
+
 	file->write((char*) &pieceCount, sizeof(pieceCount));
 	file->write(status.pieceStatus.getData(), status.pieceStatus.getDataSize());
 
@@ -101,9 +102,9 @@ void Torrent::write(size_t size)
 {
 	for(size_t i = 0; i < sizeof(size); ++i)
 	{
-		char temp = size % 256;
+		unsigned char temp = size % 256;
 
-		file->write(&temp, 1);
+		file->write((char *) &temp, 1);
 
 		size = size >> 8;
 	}
@@ -114,13 +115,16 @@ void Torrent::read()
 	size_t pieceCount;
 	size_t torrentPathLenght;
 	size_t downloadPathLenght;
+	size_t connectionIdSize;
 	char* buffer;
 	QByteArray buf;
+
+	file->seek(0);
 
 	read(pieceCount);
 	buffer = new char[pieceCount];
 
-	file->read(buffer, BitSet::getPageCount(pieceCount));
+	file->read(buffer, BitSet::getPageNumber(pieceCount));
 	status.pieceStatus = BitSet((unsigned char*) buffer, pieceCount);
 
 	read(torrentPathLenght);
@@ -140,17 +144,31 @@ void Torrent::read(size_t& size)
 
 	for (size_t i = 0; i < sizeof(size); ++i)
 	{
-		char temp;
+		unsigned char temp;
 
-		file->read(&temp, 1);
+		file->read((char *) &temp, 1);
 
-		size = size + ((size_t) temp << (i * 8));
+		size = size + ((size_t) temp <<  (i * 8));
 	}
 }
 
-const TorrentFileStatus* Torrent::getStatus() const
+void Torrent::updatePage(const size_t page)
+{
+	file->seek(sizeof(size_t) + page);
+
+	file->putChar(status.pieceStatus.getData()[page]);
+}
+
+const TorrentConfig* Torrent::getStatus() const
 {
 	return &status;
+}
+
+void Torrent::onPieceDownloaded(const size_t& index)
+{
+	status.pieceStatus.set(index);
+
+	updatePage(BitSet::getPageNumber(index));
 }
 
 void Torrent::downloadStatusUpdated()
@@ -158,9 +176,4 @@ void Torrent::downloadStatusUpdated()
 	//std::cout << file->fileName().toStdString() << std::endl;
 
 	emit torrentStatusUpdated(file->fileName().toStdString(), &(downloader->getDownloadStatus()));
-}
-
-void Torrent::pieceDownloaded(const size_t& index)
-{
-	status.pieceStatus.set(index);
 }

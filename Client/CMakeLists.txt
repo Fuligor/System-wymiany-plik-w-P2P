@@ -33,7 +33,7 @@ set(SOURCES
     "TorrentDownloader.cpp"
     "TorrentDownloader.h"
     "TorrentDownloadStatus.h"
-    "TorrentFileStatus.h"
+    "TorrentConfig.h"
     "TorrentManager.cpp"
     "TorrentManager.h"
     "Window.cpp" 

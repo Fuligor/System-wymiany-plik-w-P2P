@@ -38,9 +38,6 @@ const std::string Client::createId()
     toString(QApplication::instance()->applicationPid(), id + 4);
     toString(QDateTime::currentDateTime().toMSecsSinceEpoch(), id + 12);
 
-    std::cout << QApplication::instance()->applicationPid() << std::endl;
-    std::cout << QDateTime::currentDateTime().toMSecsSinceEpoch() << std::endl;
-
     return std::string(id, 20);
 }
 

@@ -10,6 +10,7 @@ class TrackerRequest
         std::shared_ptr <bencode::Dict> info;
         std::shared_ptr <bencode::String> peer_id;
         std::shared_ptr <bencode::Int> port;
+        std::shared_ptr <bencode::Int> left;
         std::shared_ptr <bencode::Int> uploaded;
         std::shared_ptr <bencode::Int> downloaded;
         std::shared_ptr <bencode::Int> length;
@@ -22,6 +23,7 @@ class TrackerRequest
         ~TrackerRequest();
         void setPeer_id(std::string p_id);
         void setPort(int po);
+        void setLeft(int left);
         void setUploaded(int up);
         void setDownloaded(int down);
         void setCompact(bool com);

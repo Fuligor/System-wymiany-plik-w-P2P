@@ -34,33 +34,33 @@ void BitSet::updateStatistics()
 
 	for(size_t i = 0; i < pages; ++i)
 	{
-		count += countBits(data[i]);
+		count += countBits(data.get()[i]);
 	}
 }
 
 BitSet::BitSet(const size_t size)
 	:size(size), count(0)
 {
-	pages = getPageCount(size);
+	pages = getPageNumber(size);
 
-	data = new unsigned char[pages];
+	data.reset(new unsigned char[pages]);
 
 	for (size_t i = 0; i < pages; ++i)
 	{
-		data[i] = 0;
+		data.get()[i] = 0;
 	}
 }
 
 BitSet::BitSet(unsigned char* bits, const size_t size)
 	:size(size)
 {
-	pages = getPageCount(size);
+	pages = getPageNumber(size);
 
-	data = new unsigned char[pages];
+	data.reset(new unsigned char[pages]);
 
 	for(size_t i = 0; i < pages; ++i)
 	{
-		data[i] = bits[i];
+		data.get()[i] = bits[i];
 	}
 
 	updateStatistics();
@@ -68,7 +68,6 @@ BitSet::BitSet(unsigned char* bits, const size_t size)
 
 BitSet::~BitSet()
 {
-	delete[] data;
 }
 
 void BitSet::set()
@@ -80,10 +79,10 @@ void BitSet::set()
 
 	for (size_t i = 0; i < pages; ++i)
 	{
-		data[i] = -1;
+		data.get()[i] = -1;
 	}
 
-	data[pages - 1] = -1 - (powi(2, (8 - size) % 8) - 1);
+	data.get()[pages - 1] = powi(2, size % 8) - 1;
 
 	count = size;
 }
@@ -92,7 +91,7 @@ void BitSet::reset()
 {
 	for (size_t i = 0; i < pages; ++i)
 	{
-		data[i] = 0;
+		data.get()[i] = 0;
 	}
 
 	count = 0;
@@ -102,29 +101,29 @@ const unsigned char* const BitSet::set(size_t index)
 {
 	unsigned char mask = 1 << (index % 8);
 
-	data[index / 8] |= mask;
+	data.get()[index / 8] |= mask;
 
 	++count;
 
-	return data + index / 8;
+	return data.get() + index / 8;
 }
 
 const unsigned char* const BitSet::reset(size_t index)
 {
 	unsigned char mask = -1 ^ (1 << (index % 8));
 
-	data[index / 8] &= mask;
+	data.get()[index / 8] &= mask;
 
 	--count;
 
-	return data + index / 8;
+	return data.get() + index / 8;
 }
 
 bool BitSet::bit(size_t index)
 {
 	unsigned char mask = 1 << (index % 8);
 
-	return data[index / 8] & mask;
+	return data.get()[index / 8] & mask;
 }
 
 size_t BitSet::getSize() const
@@ -144,10 +143,10 @@ size_t BitSet::getDataSize() const
 
 const char* const BitSet::getData()
 {
-	return (char*) data;
+	return (char*) data.get();
 }
 
-size_t BitSet::getPageCount(const size_t size)
+size_t BitSet::getPageNumber(const size_t size)
 {
-	return ceil(size / 8.0);;
+	return (size_t) ceil(size / 8.0);;
 }

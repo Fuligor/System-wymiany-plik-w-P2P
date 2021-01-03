@@ -22,7 +22,6 @@ TrackerConnection::TrackerConnection(const std::shared_ptr <bencode::Dict>& torr
 	connectTimer->setSingleShot(true);
 
 	initConnection(torrentDict);
-	connectToTracker();
 	initRequest();
 
 	isUpdateSheduled = false;
@@ -36,6 +35,27 @@ TrackerConnection::~TrackerConnection()
 	delete inActiveState;
 	delete requestTimer;
 	delete connectTimer;
+}
+
+void TrackerConnection::setLeft(size_t left)
+{
+	mutex->lock();
+	request.setLeft(left);
+	mutex->unlock();
+}
+
+void TrackerConnection::setDownloaded(size_t downloaded)
+{
+	mutex->lock();
+	request.setDownloaded(downloaded);
+	mutex->unlock();
+}
+
+void TrackerConnection::setUploaded(size_t uploaded)
+{
+	mutex->lock();
+	request.setUploaded(uploaded);
+	mutex->unlock();
 }
 
 void TrackerConnection::initRequest()
@@ -111,7 +131,6 @@ void TrackerConnection::reconnect()
 void TrackerConnection::sendRequest()
 {
 	socket->write(QByteArray::fromStdString(request.getRequest()));
-	std::cerr << request.getRequest() << std::endl;
 	socket->flush();
 
 	setState(ConnectionStatus::AWAITING);
@@ -158,11 +177,6 @@ void TrackerConnection::stopRequest()
 	}
 
 	socket->disconnect();
-
-	if(!socket->waitForDisconnected(1000))
-	{
-		socket->abort();
-	}
 
 	mutex->unlock();
 }

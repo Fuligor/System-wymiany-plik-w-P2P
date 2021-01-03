@@ -1,5 +1,5 @@
-#ifndef TORRENT_FILE_STATUS
-#define TORRENT_FILE_STATUS
+#ifndef TORRENT_CONFIG_H
+#define TORRENT_CONFIG_H
 
 #include <string>
 
@@ -7,13 +7,13 @@
 
 #include "BitSet.h"
 
-struct TorrentFileStatus
+struct TorrentConfig
 {
 	BitSet pieceStatus;
 	std::string torrentPath;
 	std::string downloadPath;
 
-	TorrentFileStatus(const size_t& pieces)
+	TorrentConfig(const size_t& pieces)
 		:pieceStatus(pieces)
 	{}
 };

@@ -20,6 +20,8 @@ TorrentDownloader::TorrentDownloader(const std::shared_ptr <bencode::Dict>& torr
 	connect(this, SIGNAL(pieceUploaded(size_t)), this, SIGNAL(statusUpdated()));
 
 	calculateDownloadedSize();
+
+	tracker->connectToTracker();
 }
 
 TorrentDownloader::~TorrentDownloader()
@@ -54,12 +56,10 @@ void TorrentDownloader::calculateDownloadedSize()
 
 		size_t piecesSize = (pieces.getCount() - pieces.bit(lastBit)) * pieceSize;
 
-		std::cout << piecesSize << " " << pieces.bit(lastBit) << std::endl;
-
 		downloadStatus.downloadedSinceStart = piecesSize + getPieceSize(lastBit) * pieces.bit(lastBit);
-	}
 
-	std::cout << downloadStatus.downloadedSinceStart << std::endl;
+		tracker->setLeft(downloadStatus.fileSize - downloadStatus.downloadedSinceStart);
+	}
 }
 
 void TorrentDownloader::onTrackerStatusChanged(const ConnectionStatus& status)
@@ -94,8 +94,13 @@ void TorrentDownloader::onPieceDownloaded(size_t index)
 {
 	pieces.set(index);
 
-	downloadStatus.downloaded += getPieceSize(index);
-	downloadStatus.downloadedSinceStart += getPieceSize(index);
+	size_t pieceSize = getPieceSize(index);
+
+	downloadStatus.downloaded += pieceSize;
+	downloadStatus.downloadedSinceStart += pieceSize;
+
+	tracker->setLeft(downloadStatus.fileSize - downloadStatus.downloadedSinceStart);
+	tracker->setDownloaded(downloadStatus.downloaded);
 
 	emit pieceDownloaded(index);
 }
@@ -103,6 +108,8 @@ void TorrentDownloader::onPieceDownloaded(size_t index)
 void TorrentDownloader::onPieceUploaded(size_t index)
 {
 	downloadStatus.uploaded += getPieceSize(index);
+
+	tracker->setUploaded(downloadStatus.uploaded);
 
 	emit pieceUploaded(index);
 }

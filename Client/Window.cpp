@@ -32,7 +32,6 @@ Window::Window(QWidget *parent)
 
 void Window::torrentStatusUpdated(const std::string torrentId, const TorrentDownloadStatus* status)
 {
-    std::cout << torrentId << std::endl;
     size_t rowIndex;
     QString connectionState;
 
@@ -50,10 +49,10 @@ void Window::torrentStatusUpdated(const std::string torrentId, const TorrentDown
     switch (status->connectionState)
     {
     case TorrentDownloadStatus::State::CONNECTING_TO_TRACKER:
-        connectionState = QString::fromStdWString(L"��czenie z trackerem...");
+        connectionState = QString::fromStdWString(L"Łączenie z trackerem...");
         break;
     case TorrentDownloadStatus::State::TRACKER_CONNECTION_REFUSED:
-        connectionState = QString::fromStdWString(L"Po��czenie odrzucone...");
+        connectionState = QString::fromStdWString(L"Połączenie odrzucone...");
         break;
     case TorrentDownloadStatus::State::LEECHING:
         connectionState = QString::fromStdWString(L"Leeching...");

@@ -11,6 +11,7 @@ TrackerRequest::TrackerRequest(std::shared_ptr <bencode::Dict> torrentDict)
     info = std::dynamic_pointer_cast <bencode::Dict> (tmp["info"]);
     peer_id.reset(new bencode::String());
     port.reset(new bencode::Int());
+    left.reset(new bencode::Int());
     uploaded.reset(new bencode::Int());
     downloaded.reset(new bencode::Int());
     length = std::dynamic_pointer_cast <bencode::Int> ((*info)["length"]);
@@ -31,6 +32,11 @@ void TrackerRequest::setPeer_id(std::string p_id)
 void TrackerRequest::setPort(int po)
 {
     port.reset(new bencode::Int(po));
+    return;
+}
+void TrackerRequest::setLeft(int left)
+{
+    this->left.reset(new bencode::Int(left));
     return;
 }
 void TrackerRequest::setUploaded(int up)
@@ -87,7 +93,7 @@ std::string TrackerRequest::getRequest()
     request["port"] = port;
     request["uploaded"] = uploaded;
     request["downloaded"] = downloaded;
-    request["left"] = std::make_shared <bencode::Int> (*length - *downloaded);
+    request["left"] = left;
     request["compact"] = compact;
     request["no_peer_id"] = no_peer_id;
 

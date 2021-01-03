@@ -45,6 +45,10 @@ private:
 public:
     TrackerConnection(const std::shared_ptr <bencode::Dict>& torrentDict, TorrentDownloader* parent);
     ~TrackerConnection();
+
+    void setLeft(size_t left);
+    void setDownloaded(size_t downloaded);
+    void setUploaded(size_t uploaded);
 protected:
     void initRequest();
     void initConnection(const std::shared_ptr <bencode::Dict>& torrentDict);
@@ -56,11 +60,11 @@ public slots:
     void stopRequest();
     void completeRequest();
     void updatePeerList();
+    void connectToTracker();
 
 protected slots:
     void interval();
     void regularRequest();
-    void connectToTracker();
     void onConnection();
     void retryConnect();
     void reconnect();

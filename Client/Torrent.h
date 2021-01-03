@@ -5,7 +5,7 @@
 #include <memory>
 
 #include "Bencode.h"
-#include "TorrentFileStatus.h"
+#include "TorrentConfig.h"
 
 class QFile;
 
@@ -18,7 +18,7 @@ class Torrent
 {
 	Q_OBJECT
 private:
-	TorrentFileStatus status;
+	TorrentConfig status;
 	std::shared_ptr <bencode::Dict> torrentDict;
 	TorrentDownloader* downloader;
 	QFile* file;
@@ -33,10 +33,11 @@ protected:
 	void write(size_t size);
 	void read();
 	void read(size_t& size);
+	void updatePage(const size_t page);
 public:
-	const TorrentFileStatus* getStatus() const;
+	const TorrentConfig* getStatus() const;
 public slots:
-	void pieceDownloaded(const size_t& index);
+	void onPieceDownloaded(const size_t& index);
 	void downloadStatusUpdated();
 signals:
 	void torrentStatusUpdated(const std::string, const TorrentDownloadStatus*);

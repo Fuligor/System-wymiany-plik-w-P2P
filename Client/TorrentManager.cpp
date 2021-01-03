@@ -5,7 +5,6 @@
 #include <QDir>
 
 #include "Client.h"
-#include "TorrentFileStatus.h"
 #include "torrentReader.h"
 
 TorrentManager::TorrentManager()
@@ -58,17 +57,12 @@ void TorrentManager::append(const std::string& infoHash, Torrent* torrent)
 
 void TorrentManager::clear()
 {
-	for (auto i : fileList)
+	for(auto i: fileList)
 	{
-		if (i.second == nullptr)
-		{
-			continue;
-		}
-
 		delete i.second;
-
-		fileList.erase(i.first);
 	}
+
+	fileList.clear();
 }
 
 TorrentManager* TorrentManager::manager = nullptr;

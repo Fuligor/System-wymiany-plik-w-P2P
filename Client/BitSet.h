@@ -1,12 +1,13 @@
 #ifndef BIT_SET_H
 #define BIT_SET_H
 #include <stddef.h>
+#include <memory>
 
 class BitSet
 {
 	using pageType = unsigned char;
 
-	unsigned char* data;
+	std::shared_ptr <unsigned char> data;
 	size_t size;
 	size_t count;
 	int pages;
@@ -29,6 +30,6 @@ public:
 	size_t getDataSize() const;
 	const char* const getData();
 
-	static size_t getPageCount(const size_t size);
+	static size_t getPageNumber(const size_t size);
 };
 #endif
