@@ -26,15 +26,14 @@ class PeerConnection
 private:
     File* mFile;
     QTcpSocket* socket;
-    TorrentDownloader* peers;
-    QString adress;
-    quint16 port;
+    std::string peerId;
     std::string infoHash;
     std::string buffor;
     BitSet havePieces;
     std::string fragBuff;
     size_t toDownload;
-
+    size_t downloadLength = 16 * 1024;
+    bool isDownloading;
     /*bool amchoked;
     bool peerchoked;
     bool aminterested;
@@ -43,7 +42,12 @@ private:
 public:
     PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File* mFile, TorrentDownloader* parent);
     ~PeerConnection();
-
+    void downloadPiece(size_t index, size_t pieceSize, std::string fragHash);
+    const BitSet& getPieces();
+    bool getIsDownloading();
+protected:
+    std::string write(size_t size);
+    size_t read(std::string& size);
 protected slots:
     void handshake();
     /*void choke();
@@ -52,10 +56,14 @@ protected slots:
     void not_interested();*/
     void have(size_t index);
     void bitfield(BitSet& pieces);
-    void request(int index, int begin, int length);
-    void piece(int index, int begin, std::string block);
+    void request(size_t index, size_t begin);
+    void piece(size_t index, size_t begin, std::string block);
     void readData();
+    void onDisconnection();
 signals:
+    void downloadRequest(PeerConnection* conn);
     void pieceDownloaded(size_t index);
+    void initialize(std::string idpeer, PeerConnection* conn);
+    void peerdisconnect(std::string peerid, PeerConnection* conn);
 };
 #endif
