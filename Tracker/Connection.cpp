@@ -16,7 +16,7 @@ int min(int a, int b)
 }
 
 Connection::Connection(const int &socket, int interval, sockaddr_in *address)
-    : socket(socket), state(State::NEW), interval(10), address(address), completed(false), peer(), info_hash(nullptr)
+    : socket(socket), state(State::NEW), interval(interval), address(address), completed(false), peer(), info_hash(nullptr)
 {
 }
 
@@ -81,6 +81,8 @@ bencode::Dict *Connection::getReguest()
 bool Connection::createResponse()
 {
     TrackerResponse response;
+    response.setInterval(interval);
+
     bencode::Dict *request = nullptr;
     Server *server = Server::getInstance();
 
@@ -187,7 +189,6 @@ bool Connection::createResponse()
         }
     }
 
-    response.setInterval(interval);
     response.setTracker_id("0");
     response.setComplete(server->getTorrentInfo(info_hash.get()).getCompleted());
     response.setIncomplete(server->getTorrentInfo(info_hash.get()).getIncompleted());
