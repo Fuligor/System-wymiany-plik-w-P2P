@@ -62,7 +62,12 @@ void DownloadFileWindow::saveSelected()
 
 void DownloadFileWindow::DownloadFile()
 {
-    Client::getInstance()->downloadFile(ui.torrentName->text().toStdString(), ui.saveName->text().toStdString());
-}
+    std::string saveName = ui.saveName->text().toStdString();
 
-const size_t DownloadFileWindow::kB = 1024;
+    if(saveName[saveName.size() - 1] != '/' || saveName[saveName.size() - 1] != '\\')
+    {
+        saveName += '/';
+    }
+
+    Client::getInstance()->downloadFile(ui.torrentName->text().toStdString(), saveName);
+}

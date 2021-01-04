@@ -1,6 +1,4 @@
-﻿#include <iostream>
-
-#include "Window.h"
+﻿#include "Window.h"
 
 #include "TorrentManager.h"
 #include "TorrentDownloadStatus.h"
@@ -13,6 +11,8 @@ Window::Window(QWidget *parent)
     shareFileWindow = new ShareFileWindow(ui.MainWidget, nullptr);
     downloadFileWindow = new DownloadFileWindow(ui.MainWidget, nullptr);
     ui.DownloadedFiles->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+
+    ui.BottomBar->hide();
 
     QStringList headerLabel;
 
@@ -28,6 +28,7 @@ Window::Window(QWidget *parent)
     connect(ui.ShareNewFile, SIGNAL(clicked()), shareFileWindow, SLOT(show()));
     connect(ui.DownloadNewFIles, SIGNAL(clicked()), downloadFileWindow, SLOT(init()));
     connect(ui.DownloadNewFIles, SIGNAL(clicked()), downloadFileWindow, SLOT(show()));
+    connect(ui.DownloadedFiles, SIGNAL(currentCellChanged(int, int, int, int)), this, SLOT(updateBottomBar(int, int, int, int)));
     connect(&TorrentManager::getInstance(), SIGNAL(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)), this, SLOT(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)));
 
     TorrentManager::getInstance().updateDownloadList();
@@ -43,10 +44,17 @@ void Window::torrentStatusUpdated(const std::string torrentId, const TorrentDown
         rowIndex = ui.DownloadedFiles->rowCount();
         ui.DownloadedFiles->insertRow(rowIndex);
         idToRow[torrentId] = rowIndex;
+        rowToStatus[rowIndex] = status;
     }
     else
     {
         rowIndex = idToRow.at(torrentId);
+        rowToStatus[rowIndex] = status;
+    }
+
+    if(ui.DownloadedFiles->currentRow() == rowIndex)
+    {
+        updateBottomBar(rowIndex, 0, 0, 0);
     }
 
     switch (status->connectionState)
@@ -69,7 +77,25 @@ void Window::torrentStatusUpdated(const std::string torrentId, const TorrentDown
     }
 
     ui.DownloadedFiles->setItem(rowIndex, 0, new QTableWidgetItem(QString::fromStdWString(status->fileName)));
-    ui.DownloadedFiles->setItem(rowIndex, 1, new QTableWidgetItem(QString::number(status->fileSize)));
+    ui.DownloadedFiles->setItem(rowIndex, 1, new QTableWidgetItem(QString::fromStdString(status->fileSize.toString())));
     ui.DownloadedFiles->setItem(rowIndex, 2, new QTableWidgetItem(connectionState));
     ui.DownloadedFiles->setItem(rowIndex, 3, new QTableWidgetItem(QString::fromStdString(torrentId)));
+}
+
+void Window::updateBottomBar(int currentRow, int currentColumn, int previousRow, int previousColumn)
+{
+    const TorrentDownloadStatus* status = rowToStatus[currentRow];
+
+    ui.progressBar->setValue(100 * status->downloadedSinceStart.to_int() / status->fileSize.to_int());
+
+    ui.ETA->setText(status->estimatedEndTime.toString());
+    ui.downloadTime->setText(QString::number(status->startTime.secsTo(QDateTime::currentDateTime())));
+    ui.downloaded->setText(QString::fromStdString(status->downloaded.toString()));
+    ui.uploaded->setText(QString::fromStdString(status->uploaded.toString()));
+    ui.downloadSpeed->setText(QString::fromStdString(status->downloadSpeed.toString() + "/s"));
+    ui.uploadSpeed->setText(QString::fromStdString(status->uploadSpeed.toString() + "/s"));
+    ui.downloadedSinceStart->setText(QString::fromStdString(status->downloadedSinceStart.toString()));
+    ui.connectionCount->setText(QString::number(status->connectionCount));
+
+    ui.BottomBar->show();
 }

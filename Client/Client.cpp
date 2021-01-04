@@ -6,7 +6,6 @@
 
 #include <cstdlib>
 #include <ctime>
-#include <iostream>
 
 #include "Torrent.h"
 #include "TorrentFile.h"
@@ -73,7 +72,7 @@ void Client::shareFile(const std::string& fileName, const std::string& trackerAd
     TorrentFile file(fileName, trackerAddres, pieceSize);
     file.createFile();
 
-    new Torrent(fileName + ".torrent", fileName);
+    new Torrent(fileName + ".torrent", fileName, true);
 }
 
 void Client::downloadFile(const std::string& torrentPath, const std::string& downloadPath)

@@ -1,6 +1,9 @@
 #include "BitSet.h"
 
 #include <cmath>
+#include <bitset>
+
+#include <iostream>
 
 int powi(int a, unsigned int b)
 {
@@ -67,23 +70,27 @@ BitSet::~BitSet()
 
 BitSet BitSet::operator~() const
 {
+	std::shared_ptr <unsigned char> result(new unsigned char[pages]);
 
-	unsigned char* result = new unsigned char[pages];
 	for (int i = 0; i < pages; i++)
 	{
-		result[i] = ~data.get()[i];
+		result.get()[i] = ~data.get()[i];
 	}
-	return BitSet(result, pages);
+
+	result.get()[pages - 1] = result.get()[pages - 1] & (powi(2, size % 8) - 1);
+
+	return BitSet(result.get(), size);
 }
 
 BitSet BitSet::operator&(const BitSet& bitset) const
 {
-	unsigned char* result = new unsigned char[pages];
+	std::shared_ptr <unsigned char> result(new unsigned char[pages]);
+
 	for (int i = 0; i < pages; i++)
 	{
-		result[i] = data.get()[i] & bitset.data.get()[i];
+		result.get()[i] = data.get()[i] & bitset.data.get()[i];
 	}
-	return BitSet(result, pages);
+	return BitSet(result.get(), size);
 }
 
 void BitSet::set()
@@ -115,22 +122,28 @@ void BitSet::reset()
 
 const unsigned char* const BitSet::set(size_t index)
 {
-	unsigned char mask = 1 << (index % 8);
+	if (!bit(index))
+	{
+		unsigned char mask = 1 << (index % 8);
 
-	data.get()[index / 8] |= mask;
+		data.get()[index / 8] |= mask;
 
-	++count;
+		++count;
+	}
 
 	return data.get() + index / 8;
 }
 
 const unsigned char* const BitSet::reset(size_t index)
 {
-	unsigned char mask = -1 ^ (1 << (index % 8));
+	if (bit(index))
+	{
+		unsigned char mask = -1 ^ (1 << (index % 8));
 
-	data.get()[index / 8] &= mask;
+		data.get()[index / 8] &= mask;
 
-	--count;
+		--count;
+	}
 
 	return data.get() + index / 8;
 }
@@ -145,26 +158,33 @@ bool BitSet::bit(size_t index)
 size_t BitSet::getSetedBit(size_t index)
 {
 	size_t count = 0;
-	for (int i = 0; i < pages; i++)
+
+	for(int i = 0; i < size; i++)
+	{
+		count += bit(i);
+
+		if (count == index)
+		{
+			return i;
+		}
+	}
+
+	/*for (int i = 0; i < pages; i++)
 	{
 		count += countBits(data.get()[i]);
-		if (count > index)
+
+		if (count >= index)
 		{
 			for (int j = 7; j >= 0; j--)
 			{
 				count -= bit(i * (size_t)8 + j);
-				if (count == index)
+				if (count - 1 == index)
 				{
-					return count;
+					return i * (size_t) 8 + j;
 				}
-				
 			}
 		}
-		else if (count == index)
-		{
-			return count;
-		}
-	}
+	}*/
 	return count;
 }
 

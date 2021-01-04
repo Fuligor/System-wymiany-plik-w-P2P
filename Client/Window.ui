@@ -141,7 +141,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QWidget" name="widget_2" native="true">
+     <widget class="QWidget" name="BottomBar" native="true">
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
         <widget class="QProgressBar" name="progressBar">
@@ -159,17 +159,17 @@
           </sizepolicy>
          </property>
          <layout class="QGridLayout" name="gridLayout_2">
-          <item row="1" column="3">
-           <widget class="QLabel" name="ETA">
+          <item row="2" column="1">
+           <widget class="QLabel" name="downloaded">
             <property name="text">
              <string>TextLabel</string>
             </property>
            </widget>
           </item>
-          <item row="1" column="2">
-           <widget class="QLabel" name="label_7">
+          <item row="2" column="3">
+           <widget class="QLabel" name="uploaded">
             <property name="text">
-             <string>Szacowany czas pabierania:</string>
+             <string>TextLabel</string>
             </property>
            </widget>
           </item>
@@ -180,17 +180,10 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="1">
-           <widget class="QLabel" name="downloadSpeed">
+          <item row="3" column="0">
+           <widget class="QLabel" name="label_3">
             <property name="text">
-             <string>TextLabel</string>
-            </property>
-           </widget>
-          </item>
-          <item row="2" column="2">
-           <widget class="QLabel" name="label_8">
-            <property name="text">
-             <string>Udostępnione:</string>
+             <string>Prędkość pobierania:</string>
             </property>
            </widget>
           </item>
@@ -208,15 +201,15 @@
             </property>
            </widget>
           </item>
-          <item row="3" column="0">
-           <widget class="QLabel" name="label_3">
+          <item row="2" column="0">
+           <widget class="QLabel" name="label_2">
             <property name="text">
-             <string>Prędkość pobierania:</string>
+             <string>Pobrane w sesji:</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="3">
-           <widget class="QLabel" name="uploaded">
+          <item row="1" column="3">
+           <widget class="QLabel" name="ETA">
             <property name="text">
              <string>TextLabel</string>
             </property>
@@ -229,17 +222,52 @@
             </property>
            </widget>
           </item>
-          <item row="2" column="1">
-           <widget class="QLabel" name="downloaded">
+          <item row="1" column="2">
+           <widget class="QLabel" name="label_7">
+            <property name="text">
+             <string>Szacowany czas pabierania:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="3" column="1">
+           <widget class="QLabel" name="downloadSpeed">
             <property name="text">
              <string>TextLabel</string>
             </property>
            </widget>
           </item>
-          <item row="2" column="0">
-           <widget class="QLabel" name="label_2">
+          <item row="2" column="2">
+           <widget class="QLabel" name="label_8">
+            <property name="text">
+             <string>Udostępnione w sesji:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="0">
+           <widget class="QLabel" name="label_4">
             <property name="text">
              <string>Pobrane:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="1">
+           <widget class="QLabel" name="downloadedSinceStart">
+            <property name="text">
+             <string>TextLabel</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="2">
+           <widget class="QLabel" name="label_6">
+            <property name="text">
+             <string>Ilość połączeń</string>
+            </property>
+           </widget>
+          </item>
+          <item row="4" column="3">
+           <widget class="QLabel" name="connectionCount">
+            <property name="text">
+             <string>TextLabel</string>
             </property>
            </widget>
           </item>

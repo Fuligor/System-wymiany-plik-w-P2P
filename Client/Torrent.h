@@ -4,6 +4,8 @@
 
 #include <memory>
 
+#include <QMutex>
+
 #include "Bencode.h"
 #include "TorrentConfig.h"
 
@@ -18,6 +20,7 @@ class Torrent
 {
 	Q_OBJECT
 private:
+	QMutex mutex;
 	TorrentConfig status;
 	std::shared_ptr <bencode::Dict> torrentDict;
 	TorrentDownloader* downloader;
@@ -26,7 +29,7 @@ private:
 	void initialize(const std::string& fileHash);
 public:
 	Torrent(const std::string& fileHash);
-	Torrent(const std::string& torrendPath, const std::string& downloadPath);
+	Torrent(const std::string& torrendPath, const std::string& downloadPath, bool upload = false);
 	~Torrent();
 protected:
 	void write();

@@ -7,8 +7,10 @@
 
 #include "Bencode.h"
 
+#include "ConnectionStatus.h"
 #include "Peer.h"
 #include "File.h"
+#include "TorrentConfig.h"
 #include "TorrentDownloadStatus.h"
 #include <qtcpserver.h>
 #include <qtcpsocket.h>
@@ -43,11 +45,10 @@ private:
 	BitSet& pieces;
 	BitSet piecesToDownload;
 	size_t pieceSize;
-	int activeConn = 0;
 	int maxConn = 30;
 	bool isAwaitingPeer;
 public:
-	TorrentDownloader(const std::shared_ptr <bencode::Dict>& torrentDict, BitSet& pieces, Torrent* parent);
+	TorrentDownloader(const std::shared_ptr <bencode::Dict>& torrentDict, TorrentConfig& status, Torrent* parent);
 	~TorrentDownloader();
 	const TorrentDownloadStatus& getDownloadStatus() const;
 	void createConnection();
@@ -74,6 +75,6 @@ signals:
 	void peerAdded();
 	void statusUpdated();
 	void pieceDownloaded(size_t index);
-	void pieceUploaded(size_t index);
+	void pieceUploaded(size_t pieceSize);
 };
 #endif // !TORRENT_DOWNLOADER_H

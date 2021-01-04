@@ -5,19 +5,20 @@
 #include <QDateTime>
 #include <QTime>
 
-#include "ConnectionStatus.h"
+#include "FileSize.h"
 
 struct TorrentDownloadStatus
 {
-	size_t downloaded;
-	size_t uploaded;
-	size_t downloadedSinceStart;
-	double downloadSpeed;
-	double uploadSpeed;
+	FileSize downloaded;
+	FileSize uploaded;
+	FileSize downloadedSinceStart;
+	FileSize downloadSpeed;
+	FileSize uploadSpeed;
 	QTime estimatedEndTime;
 	QDateTime startTime;
 	std::wstring fileName;
-	size_t fileSize;
+	FileSize fileSize;
+	size_t connectionCount;
 	enum class State
 	{
 		CONNECTING_TO_TRACKER,

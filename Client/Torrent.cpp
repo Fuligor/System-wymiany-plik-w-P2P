@@ -9,15 +9,13 @@
 #include "TorrentManager.h"
 #include "torrentReader.h"
 
-
-#include <iostream>
-
 void Torrent::initialize(const std::string& fileHash)
 {
-	downloader = new TorrentDownloader(torrentDict, status.pieceStatus, this);
+	downloader = new TorrentDownloader(torrentDict, status, this);
 	TorrentManager::getInstance().append(fileHash, this);
 	connect(downloader, SIGNAL(statusUpdated()), this, SLOT(downloadStatusUpdated()));
 	connect(this, SIGNAL(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)), &TorrentManager::getInstance(), SIGNAL(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)));
+	connect(downloader, SIGNAL(pieceDownloaded(size_t)), this, SLOT(onPieceDownloaded(size_t)));
 
 	downloadStatusUpdated();
 }
@@ -36,7 +34,7 @@ Torrent::Torrent(const std::string& fileHash)
 	initialize(fileHash);
 }
 
-Torrent::Torrent(const std::string& torrendPath, const std::string& downloadPath)
+Torrent::Torrent(const std::string& torrendPath, const std::string& downloadPath, bool upload)
 	:status(0)
 {
 	status.torrentPath = torrendPath;
@@ -51,7 +49,15 @@ Torrent::Torrent(const std::string& torrendPath, const std::string& downloadPath
 	size_t pieceCount = std::dynamic_pointer_cast <bencode::String> ((*infoDict)["pieces"])->size() / 20;
 
 	status.pieceStatus = BitSet(pieceCount);
-	status.pieceStatus.set();
+	if (upload)
+	{
+		status.pieceStatus.set();
+	}
+	else
+	{
+		status.downloadPath += std::string(torrentName->begin(), torrentName->end());
+	}
+
 	std::string fileHash = InfoDictHash::getReadableHash(torrentDict);
 
 	std::string filePath = Client::getConfigPath() + "/" + fileHash;
@@ -154,9 +160,12 @@ void Torrent::read(size_t& size)
 
 void Torrent::updatePage(const size_t page)
 {
-	file->seek(sizeof(size_t) + page);
+	mutex.lock();
 
+	file->seek(sizeof(size_t) + page);
 	file->putChar(status.pieceStatus.getData()[page]);
+
+	mutex.unlock();
 }
 
 const TorrentConfig* Torrent::getStatus() const
@@ -166,9 +175,7 @@ const TorrentConfig* Torrent::getStatus() const
 
 void Torrent::onPieceDownloaded(const size_t& index)
 {
-	status.pieceStatus.set(index);
-
-	updatePage(BitSet::getPageCount(index));
+	//updatePage(BitSet::getPageCount(index));
 }
 
 void Torrent::downloadStatusUpdated()

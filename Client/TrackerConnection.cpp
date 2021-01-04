@@ -193,7 +193,6 @@ void TrackerConnection::completeRequest()
 	{
 		request.setEvent("completed");
 		sendRequest();
-		socket->waitForDisconnected();
 	}
 
 	mutex->unlock();
@@ -211,13 +210,12 @@ void TrackerConnection::updatePeerList()
 	{
 		isUpdateSheduled = true;
 	}
+
 	mutex->unlock();
 }
 
 void TrackerConnection::regularRequest()
 {
-	mutex->lock();
-
 	if (currentState != ConnectionStatus::ACTIVE)
 	{
 		return;
@@ -225,7 +223,6 @@ void TrackerConnection::regularRequest()
 
 	request.resetEvent();
 	sendRequest();
-	mutex->unlock();
 }
 
 void TrackerConnection::interval()
@@ -258,8 +255,6 @@ void TrackerConnection::decodeResponse()
 {
 	bencode::Dict* response;
 
-	std::wcerr << buf << std::endl;
-
 	try
 	{
 		response = dynamic_cast <bencode::Dict*> (decoder.decode(buf));
@@ -269,8 +264,6 @@ void TrackerConnection::decodeResponse()
 			return;
 		}
 
-		std::cout << response->code() << std::endl;
-
 		bencode::Int* interval = dynamic_cast <bencode::Int*> (response->at(L"interval").get());
 
 		if (interval != nullptr)
@@ -278,7 +271,6 @@ void TrackerConnection::decodeResponse()
 			requestTimer->setInterval(interval->getValue() * 1000);
 		}
 
-		isUpdateSheduled = false;
 		isTimerTimeouted = false;
 		requestTimer->start();
 
@@ -286,13 +278,15 @@ void TrackerConnection::decodeResponse()
 		{
 			bencode::List peers = *(dynamic_cast <bencode::List*> (response->at(L"peers").get()));
 
-			emit peerListUpdated(peers);
+			if (peers.size())
+			{
+				isUpdateSheduled = false;
+				emit peerListUpdated(peers);
+			}
 		}
 
 		setState(ConnectionStatus::ACTIVE);
 		inActiveState->wakeOne();
-
-		std::wcerr << buf << std::endl;
 	}
 	catch (bencode::Exception::end_of_file())
 	{
@@ -300,7 +294,7 @@ void TrackerConnection::decodeResponse()
 	}
 	catch (std::exception e)
 	{
-		std::cerr << e.what() << std::endl;
+
 	}
 
 	return;

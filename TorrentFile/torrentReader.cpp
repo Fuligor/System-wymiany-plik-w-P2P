@@ -1,8 +1,6 @@
 #include "torrentReader.h"
 #include <fstream>
 
-#include <iostream>
-
 torrentReader::torrentReader(std::string fileName)
 {
     std::ifstream inFile(fileName, std::ios::binary);
