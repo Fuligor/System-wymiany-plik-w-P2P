@@ -49,6 +49,11 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>Plik .torrent pliku do pobrania</string>
         </property>
@@ -70,7 +75,13 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QLineEdit" name="torrentName"/>
+          <widget class="QLineEdit" name="torrentName">
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="listTorrents">
@@ -79,6 +90,11 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
            </property>
            <property name="text">
             <string>Przeglądaj...</string>
@@ -108,6 +124,11 @@
           <verstretch>0</verstretch>
          </sizepolicy>
         </property>
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>Zapisz w:</string>
         </property>
@@ -129,7 +150,13 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QLineEdit" name="saveName"/>
+          <widget class="QLineEdit" name="saveName">
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
+           </property>
+          </widget>
          </item>
          <item>
           <widget class="QPushButton" name="listSaves">
@@ -138,6 +165,11 @@
              <horstretch>0</horstretch>
              <verstretch>0</verstretch>
             </sizepolicy>
+           </property>
+           <property name="font">
+            <font>
+             <pointsize>12</pointsize>
+            </font>
            </property>
            <property name="text">
             <string>Przeglądaj...</string>
@@ -177,6 +209,11 @@
      <layout class="QHBoxLayout" name="horizontalLayout_2">
       <item>
        <widget class="QPushButton" name="Cancel">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>Anuluj</string>
         </property>
@@ -184,6 +221,11 @@
       </item>
       <item>
        <widget class="QPushButton" name="Download">
+        <property name="font">
+         <font>
+          <pointsize>12</pointsize>
+         </font>
+        </property>
         <property name="text">
          <string>Pobierz</string>
         </property>
