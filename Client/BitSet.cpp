@@ -44,7 +44,7 @@ void BitSet::updateStatistics()
 BitSet::BitSet(const size_t size)
 	:size(size), count(0)
 {
-	pages = getPageCount(size);
+	pages = (int)getPageCount(size);
 
 	data.reset(new unsigned char[pages]);
 
@@ -57,7 +57,7 @@ BitSet::BitSet(const size_t size)
 BitSet::BitSet(unsigned char* bits, const size_t size)
 	:size(size)
 {
-	pages = getPageCount(size);
+	pages = (int)getPageCount(size);
 
 	data.reset(new unsigned char[pages]);
 

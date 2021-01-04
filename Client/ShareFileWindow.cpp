@@ -88,7 +88,8 @@ void ShareFileWindow::shareFile()
     QFile file("trackerSaves.txt");
     if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         QTextStream out(&file);
-        for (int i; i < ui.trackerURL->count(); i++)
+        
+        for (int i = 0; i < ui.trackerURL->count(); i++)
         {
             out << ui.trackerURL->itemText(i) + "\n";
         }

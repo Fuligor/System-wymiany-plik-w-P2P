@@ -40,21 +40,21 @@ TrackerConnection::~TrackerConnection()
 void TrackerConnection::setLeft(size_t left)
 {
 	mutex->lock();
-	request.setLeft(left);
+	request.setLeft((int)left);
 	mutex->unlock();
 }
 
 void TrackerConnection::setDownloaded(size_t downloaded)
 {
 	mutex->lock();
-	request.setDownloaded(downloaded);
+	request.setDownloaded((int)downloaded);
 	mutex->unlock();
 }
 
 void TrackerConnection::setUploaded(size_t uploaded)
 {
 	mutex->lock();
-	request.setUploaded(uploaded);
+	request.setUploaded((int)uploaded);
 	mutex->unlock();
 }
 
