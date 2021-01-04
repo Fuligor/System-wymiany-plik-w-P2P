@@ -10,7 +10,7 @@ class BitSet
 	std::shared_ptr <unsigned char> data;
 	size_t size;
 	size_t count;
-	int pages;
+	size_t pages;
 protected:
 	size_t countBits(unsigned char i);
 	void updateStatistics();

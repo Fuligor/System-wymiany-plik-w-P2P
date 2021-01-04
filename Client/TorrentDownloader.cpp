@@ -9,7 +9,7 @@
 #include <QDebug>
 
 TorrentDownloader::TorrentDownloader(const std::shared_ptr <bencode::Dict>& torrentDict, TorrentConfig& status, Torrent* parent)
-	:QObject(parent), pieces(status.pieceStatus), tcpServer(this), isAwaitingPeer(false), piecesToDownload(~pieces)
+	:QObject(parent), tcpServer(this), pieces(status.pieceStatus), piecesToDownload(~pieces)
 {
 	std::shared_ptr <bencode::Dict> info = std::dynamic_pointer_cast <bencode::Dict> ((*torrentDict)["info"]);
 	infoHash = InfoDictHash::getHash(torrentDict);
@@ -23,7 +23,7 @@ TorrentDownloader::TorrentDownloader(const std::shared_ptr <bencode::Dict>& torr
 	pieceSize = std::dynamic_pointer_cast <bencode::Int> ((*info)["piece length"])->getValue();
 	std::shared_ptr <bencode::String> temp = std::dynamic_pointer_cast <bencode::String> ((*info)["pieces"]);
 	
-	for (int i = 0; i < temp->size(); ++i)
+	for (size_t i = 0; i < temp->size(); ++i)
 	{
 		piecesHash += (char) temp->at(i);
 	}

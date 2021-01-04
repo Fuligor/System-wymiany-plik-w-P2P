@@ -46,8 +46,7 @@ private:
 	BitSet& pieces;
 	BitSet piecesToDownload;
 	size_t pieceSize;
-	int maxConn = 30;
-	bool isAwaitingPeer;
+	size_t maxConn = 30;
 public:
 	TorrentDownloader(const std::shared_ptr <bencode::Dict>& torrentDict, TorrentConfig& status, Torrent* parent);
 	~TorrentDownloader();

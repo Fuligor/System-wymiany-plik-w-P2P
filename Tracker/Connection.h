@@ -18,14 +18,13 @@ protected:
         CLOSED
     } state;
 
+    int socket;
     int interval;
     sockaddr_in* address;
 
     std::shared_ptr <std::wstring> info_hash;
     Peer peer;
     bool completed;
-
-    int socket;
 
     std::wstring buf;
 

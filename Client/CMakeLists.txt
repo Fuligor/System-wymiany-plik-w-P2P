@@ -44,7 +44,6 @@ set(SOURCES
     "Window.cpp" 
     "Window.h"
     "Window.ui"
-    "Window.qrc"
 )
 
 add_executable (Client ${SOURCES})

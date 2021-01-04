@@ -7,8 +7,8 @@
 #include "TorrentDownloader.h"
 
 TrackerConnection::TrackerConnection(const std::shared_ptr <bencode::Dict>& torrentDict, quint16 listenerPort, TorrentDownloader* parent)
-	:QObject(parent), socket(new QTcpSocket(this)), requestTimer(new QTimer(this)), connectTimer(new QTimer(this)), mutex(new QMutex()),
-	inActiveState(new QWaitCondition()), request(torrentDict), listenerPort(listenerPort)
+	:QObject(parent), mutex(new QMutex()), inActiveState(new QWaitCondition()), socket(new QTcpSocket(this)), requestTimer(new QTimer(this)), connectTimer(new QTimer(this)),
+	request(torrentDict), listenerPort(listenerPort)
 {
 	connect(socket, SIGNAL(connected()), this, SLOT(onConnection()));
 	connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(retryConnect()));
@@ -302,9 +302,9 @@ void TrackerConnection::decodeResponse()
 	}
 	catch (bencode::Exception::end_of_file())
 	{
-		std::cerr << "Oczekiwanie na pozosta³e fragmenty odpowiedzi..." << std::endl;
+		std::cerr << "Oczekiwanie na pozostaï¿½e fragmenty odpowiedzi..." << std::endl;
 	}
-	catch (std::exception e)
+	catch (std::exception& e)
 	{
 
 	}

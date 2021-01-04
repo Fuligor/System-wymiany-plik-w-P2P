@@ -2,7 +2,7 @@
 # i uwzględnij podprojekty w tym miejscu.
 #
 cmake_minimum_required (VERSION 3.8)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -g")
 project ("System-wymiany-plik-w-P2P")
 
 # Uwzględnij podprojekty.

@@ -36,13 +36,13 @@ Window::Window(QWidget *parent)
 
 void Window::torrentStatusUpdated(const std::string torrentId, const TorrentDownloadStatus* status)
 {
-    size_t rowIndex;
+    int rowIndex;
     QString connectionState;
 
     if(idToRow.find(torrentId) == idToRow.end())
     {
         rowIndex = ui.DownloadedFiles->rowCount();
-        ui.DownloadedFiles->insertRow((int)rowIndex);
+        ui.DownloadedFiles->insertRow(rowIndex);
         idToRow[torrentId] = rowIndex;
         rowToStatus[rowIndex] = status;
     }
@@ -54,7 +54,7 @@ void Window::torrentStatusUpdated(const std::string torrentId, const TorrentDown
 
     if(ui.DownloadedFiles->currentRow() == rowIndex)
     {
-        updateBottomBar((int)rowIndex, 0, 0, 0);
+        updateBottomBar(rowIndex, 0, 0, 0);
     }
 
     switch (status->connectionState)

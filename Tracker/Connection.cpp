@@ -16,7 +16,7 @@ int min(int a, int b)
 }
 
 Connection::Connection(const int &socket, int interval, sockaddr_in *address)
-    : socket(socket), state(State::NEW), interval(interval), address(address), completed(false), peer(), info_hash(nullptr)
+    : state(State::NEW), socket(socket), interval(interval), address(address), info_hash(nullptr), peer(), completed(false)
 {
 }
 
@@ -57,7 +57,7 @@ void Connection::addToBuffer(const char *data, size_t size)
 {
     std::wcout << buf << std::endl;
     std::string string(data, size);
-    printf("Readed %d\n", string.size());
+    printf("Readed %lu\n", string.size());
     buf += utf8Decoder.decode(string);
 }
 
@@ -70,7 +70,7 @@ bencode::Dict *Connection::getReguest()
 
         return result;
     }
-    catch (bencode::Exception::end_of_file)
+    catch (bencode::Exception::end_of_file& e)
     {
         printf("Niepełne kodowanie... oczekiwanie na pozostałe fragmenty\n");
 
@@ -183,7 +183,7 @@ bool Connection::createResponse()
     {
         const std::vector<Peer> peers = server->getTorrentInfo(info_hash.get()).getRandomPeers(50, peer);
 
-        for(int i = 0; i < peers.size(); ++i)
+        for(size_t i = 0; i < peers.size(); ++i)
         {
             response.addPeer(peers[i]);
         }
@@ -228,5 +228,10 @@ void Connection::sendResponse(const TrackerResponse &response)
 {
     std::string code = response.getResponse();
 
-    write(socket, code.c_str(), code.size());
+    size_t writen = write(socket, code.c_str(), code.size());
+
+    while(writen < code.size())
+    {
+        writen += write(socket, code.substr(writen).c_str(), code.size() - writen);
+    }
 }

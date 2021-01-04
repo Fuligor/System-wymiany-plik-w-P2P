@@ -103,7 +103,7 @@ void Server::initEpoll()
 }
 
 Server::Server()
-    : state(0), configPath("config")
+    : configPath("config"), state(0)
 {
     std::srand(time(NULL));
 }
@@ -156,7 +156,6 @@ void Server::run()
     state = state | 1;
 
     int connection_socket_descriptor;
-    int connection_timer;
     int create_result = 0;
 
     epoll_event event;
@@ -180,7 +179,7 @@ void Server::run()
         connection_socket_descriptor = accept(socket_desc, (sockaddr *)&clientAddress, &clientAddressSize);
         if (connection_socket_descriptor < 0)
         {
-            fprintf(stderr, "%s: Błąd przy próbie utworzenia gniazda dla połączenia.\n");
+            fprintf(stderr, "Błąd przy próbie utworzenia gniazda dla połączenia.\n");
             exit(1);
         }
 

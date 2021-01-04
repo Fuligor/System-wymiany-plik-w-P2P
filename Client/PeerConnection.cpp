@@ -8,8 +8,8 @@
 #include <qdebug.h>
 
 PeerConnection::PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File* mFile, BitSet& myPieces, TorrentDownloader* parent)
-	:QObject(parent), socket(tcpSocket), /*isInitialized(false),*/ infoHash(infoHash), mFile(mFile), /*amchoked(true), aminterested(false), peerchoked(true), peerinterested(false),*/
-	havePieces(mFile->getFragCount()), fragBuff(""), toDownload(0), isDownloading(false), download_index(0), myPieces(myPieces)
+	:QObject(parent), mFile(mFile), socket(tcpSocket), infoHash(infoHash), myPieces(myPieces),
+	havePieces(mFile->getFragCount()), fragBuff(""), toDownload(0), isDownloading(false), download_index(0)
 {
 	connectTimer.setSingleShot(true);
 

@@ -144,6 +144,8 @@ bencode::ICode* bencode::Decoder::core_decoder(const std::wstring& string)
 		break;
 	case Type::UNKNOWN:
 		throw std::domain_error("Bencode FileDecoder: Wrong value type!");
+	default:
+		break;
 	}
 
 	return result;
@@ -163,7 +165,7 @@ bencode::ICode* bencode::Decoder::decode(std::wstring& string)
 
 		return result;
 	}
-	catch (Exception::end_of_file e)
+	catch (Exception::end_of_file& e)
 	{
 		if (result != nullptr)
 		{

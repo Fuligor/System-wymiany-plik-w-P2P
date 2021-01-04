@@ -5,14 +5,14 @@
 
 #include <iostream>
 
-int powi(int a, unsigned int b)
+size_t powi(size_t a, unsigned int b)
 {
 	if(b == 0)
 	{
 		return 1;
 	}
 
-	int result = powi(a, b / 2);
+	size_t result = powi(a, b / 2);
 
 	result *= result;
 
@@ -44,7 +44,7 @@ void BitSet::updateStatistics()
 BitSet::BitSet(const size_t size)
 	:size(size), count(0)
 {
-	pages = (int)getPageCount(size);
+	pages = getPageCount(size);
 
 	data.reset(new unsigned char[pages]);
 
@@ -57,7 +57,7 @@ BitSet::BitSet(const size_t size)
 BitSet::BitSet(unsigned char* bits, const size_t size)
 	:size(size)
 {
-	pages = (int)getPageCount(size);
+	pages = getPageCount(size);
 
 	data.reset(new unsigned char[pages]);
 
@@ -72,7 +72,7 @@ BitSet BitSet::operator~() const
 {
 	std::shared_ptr <unsigned char> result(new unsigned char[pages]);
 
-	for (int i = 0; i < pages; i++)
+	for (size_t i = 0; i < pages; i++)
 	{
 		result.get()[i] = ~data.get()[i];
 	}
@@ -86,7 +86,7 @@ BitSet BitSet::operator&(const BitSet& bitset) const
 {
 	std::shared_ptr <unsigned char> result(new unsigned char[pages]);
 
-	for (int i = 0; i < pages; i++)
+	for (size_t i = 0; i < pages; i++)
 	{
 		result.get()[i] = data.get()[i] & bitset.data.get()[i];
 	}
@@ -159,7 +159,7 @@ size_t BitSet::getSetedBit(size_t index)
 {
 	size_t count = 0;
 
-	for(int i = 0; i < size; i++)
+	for(size_t i = 0; i < size; i++)
 	{
 		count += bit(i);
 
@@ -169,13 +169,13 @@ size_t BitSet::getSetedBit(size_t index)
 		}
 	}
 
-	/*for (int i = 0; i < pages; i++)
+	/*for (size_t i = 0; i < pages; i++)
 	{
 		count += countBits(data.get()[i]);
 
 		if (count >= index)
 		{
-			for (int j = 7; j >= 0; j--)
+			for (size_t j = 7; j >= 0; j--)
 			{
 				count -= bit(i * (size_t)8 + j);
 				if (count - 1 == index)

@@ -4,7 +4,7 @@
 #include <QCryptographicHash>
 
 FileFrag::FileFrag(QFile* file, const unsigned int position, size_t size, QMutex* mutex, QObject* parent)
-	: QObject(parent), mFile(file), mPosition(position), mSize(size), mutex(mutex)
+	: QObject(parent), mutex(mutex), mFile(file), mPosition(position), mSize(size)
 {
 }
 

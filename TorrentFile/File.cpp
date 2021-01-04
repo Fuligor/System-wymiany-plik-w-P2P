@@ -8,7 +8,7 @@
 #include "FileFrag.h"
 
 File::File(const QString& name, const size_t& fragSize, QObject* parent)
-	:mFile(new QFile(name, this)), QObject(parent), mFragSize(fragSize)
+	:QObject(parent), mFile(new QFile(name, this)), mFragSize(fragSize)
 {
 	mFile->open(QIODevice::ReadWrite);
 	mFileSize = mFile->size();
@@ -22,7 +22,7 @@ File::File(const QString& name, const size_t& fragSize, QObject* parent)
 }
 
 File::File(const QString& name, const size_t& fragSize, const size_t& fileSize, QObject* parent)
-	:mFile(new QFile(name, this)), QObject(parent), mFragSize(fragSize)
+	:QObject(parent), mFile(new QFile(name, this)), mFragSize(fragSize)
 {
 	mFile->open(QIODevice::ReadWrite);
 	mFileSize = fileSize;
