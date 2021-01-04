@@ -221,5 +221,5 @@ void BitSet::setData(unsigned char* bits)
 
 size_t BitSet::getPageCount(const size_t size)
 {
-	return (size_t) ceil(size / 8.0);;
+	return (size_t) ceil(size / 8.0);
 }

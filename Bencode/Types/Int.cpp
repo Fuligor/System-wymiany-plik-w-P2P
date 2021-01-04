@@ -4,7 +4,7 @@ bencode::Int::Int()
 	:Int(0)
 {}
 
-bencode::Int::Int(const int& value)
+bencode::Int::Int(const size_t& value)
 	: mValue(value)
 {}
 
@@ -17,7 +17,7 @@ bencode::Int::Int(Int&& other) noexcept
 {
 }
 
-int bencode::Int::getValue() const
+size_t bencode::Int::getValue() const
 {
 	return mValue;
 }
@@ -33,7 +33,7 @@ std::string bencode::Int::code() const
 	return result;
 }
 
-bencode::Int& bencode::Int::operator=(const int& value)
+bencode::Int& bencode::Int::operator=(const size_t& value)
 {
 	mValue = value;
 
@@ -47,7 +47,7 @@ bencode::Int& bencode::Int::operator=(const Int& other)
 	return *this;
 }
 
-bencode::Int bencode::Int::operator+(const int& b) const
+bencode::Int bencode::Int::operator+(const size_t& b) const
 {
 	return Int(mValue + b);
 }
@@ -62,7 +62,7 @@ bencode::Int bencode::Int::operator-() const
 	return Int(-mValue);
 }
 
-bencode::Int bencode::Int::operator-(const int& b) const
+bencode::Int bencode::Int::operator-(const size_t& b) const
 {
 	return Int(mValue - b);
 }
@@ -72,12 +72,12 @@ bencode::Int bencode::Int::operator-(const Int& b) const
 	return Int(mValue - b.mValue);
 }
 
-bencode::Int operator+(const int& a, const bencode::Int& b)
+bencode::Int operator+(const size_t& a, const bencode::Int& b)
 {
 	return b + a;
 }
 
-bencode::Int operator-(const int& a, const bencode::Int& b)
+bencode::Int operator-(const size_t& a, const bencode::Int& b)
 {
 	return b - a;
 }

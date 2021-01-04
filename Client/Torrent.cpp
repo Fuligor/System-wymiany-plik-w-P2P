@@ -162,8 +162,13 @@ void Torrent::updatePage(const size_t page)
 {
 	mutex.lock();
 
-	file->seek(sizeof(size_t) + page);
-	file->putChar(status.pieceStatus.getData()[page]);
+	if (file->seek(sizeof(size_t) + page))
+	{
+		char data = status.pieceStatus.getData()[page];
+
+		file->putChar(data);
+		file->flush();
+	}
 
 	mutex.unlock();
 }
@@ -175,7 +180,7 @@ const TorrentConfig* Torrent::getStatus() const
 
 void Torrent::onPieceDownloaded(const size_t& index)
 {
-	//updatePage(BitSet::getPageCount(index));
+	updatePage(index / 8);
 }
 
 void Torrent::downloadStatusUpdated()

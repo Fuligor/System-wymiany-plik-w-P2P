@@ -12,12 +12,6 @@ FileFrag::~FileFrag()
 {
 }
 
-void FileFrag::free() const
-{
-	mHash.clear();
-	mData.clear();
-}
-
 void FileFrag::setData(std::string frag)
 {
 	mutex->lock();
@@ -26,28 +20,17 @@ void FileFrag::setData(std::string frag)
 	mutex->unlock();
 }
 
-const QByteArray& FileFrag::getHash() const
+const QByteArray FileFrag::getHash() const
 {
-	getData();
-	if(!mIsHashCalculated)
-	{
-		mIsHashCalculated = true;
-		mHash = QCryptographicHash::hash(mData, QCryptographicHash::Algorithm::Sha1);
-	}
-
-	return mHash;
+	return QCryptographicHash::hash(getData(), QCryptographicHash::Algorithm::Sha1);
 }
 
-const QByteArray& FileFrag::getData() const
+const QByteArray FileFrag::getData() const
 {
-	if (!mIsDataReaded)
-	{
-		mutex->lock();
-		mIsDataReaded = true;
-		mFile->seek(mPosition);
-		mData = mFile->read(mSize);
-		mutex->unlock();
-	}
+	mutex->lock();
+	mFile->seek(mPosition);
+	QByteArray mData = mFile->read(mSize);
+	mutex->unlock();
 
 	return mData;
 }

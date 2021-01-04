@@ -1,33 +1,35 @@
 #pragma once
 #include "ICode.h"
 
+#include <cstddef>
+
 namespace bencode
 {
 	class Int
 		:public ICode
 	{
 	protected:
-		int mValue;
+		size_t mValue;
 	public:
 		Int();
-		Int(const int& value);
+		Int(const size_t& value);
 		Int(const Int& other);
 		Int(Int&& other) noexcept;
 
-		int getValue() const;
+		size_t getValue() const;
 		virtual std::string code() const;
 
-		Int& operator = (const int& value);
+		Int& operator = (const size_t& value);
 		Int& operator = (const Int& other);
 
-		Int operator + (const int& b) const;
+		Int operator + (const size_t& b) const;
 		Int operator + (const Int& b) const;
 
 		Int operator - () const;
-		Int operator - (const int& b) const;
+		Int operator - (const size_t& b) const;
 		Int operator - (const Int& b) const;
 	};
 
-	Int operator + (const int& a, const Int& b);
-	Int operator - (const int& a, const Int& b);
+	Int operator + (const size_t& a, const Int& b);
+	Int operator - (const size_t& a, const Int& b);
 }

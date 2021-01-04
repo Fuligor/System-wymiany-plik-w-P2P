@@ -53,7 +53,7 @@ void TorrentDownloader::createConnection()
 	availablePeers.erase(availablePeers.begin());
 	downloadStatus.connectionCount++;
 
-	new PeerConnection(socket, infoHash, mFile, this);
+	new PeerConnection(socket, infoHash, mFile, pieces, this);
 
 	emit statusUpdated();
 }
@@ -134,7 +134,9 @@ void TorrentDownloader::onTrackerStatusChanged(const ConnectionStatus& status)
 
 void TorrentDownloader::onNewConnection()
 {
-	new PeerConnection(tcpServer.nextPendingConnection(), infoHash, mFile, this);
+	downloadStatus.connectionCount++;
+
+	new PeerConnection(tcpServer.nextPendingConnection(), infoHash, mFile, pieces, this);
 }
 
 void TorrentDownloader::peerHandshake(std::string peerId, PeerConnection* connection)
@@ -143,7 +145,7 @@ void TorrentDownloader::peerHandshake(std::string peerId, PeerConnection* connec
 	{
 		connectedPeers.insert(peerId);
 
-		connection->bitfield(pieces);
+		connection->bitfield();
 	}
 	else
 	{
