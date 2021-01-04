@@ -8,7 +8,6 @@ class QFileDialog;
 class ShareFileWindow : public QWidget
 {
 	Q_OBJECT
-	static const size_t kB;
 
 	QWidget* prevWindow;
     QFileDialog* fileDialog;
@@ -18,9 +17,12 @@ public:
 
 public slots:
 	void init();
-    void getFiles();
+   // void getFiles();
     void fileSelected();
 	void shareFile();
+	void check();
 private:
 	Ui::ShareFileWindow ui;
+signals:
+	void checked();
 };

@@ -57,7 +57,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QWidget" name="widget_2" native="true">
+       <widget class="QWidget" name="widget_6" native="true">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
           <horstretch>0</horstretch>
@@ -245,41 +245,5 @@
   </layout>
  </widget>
  <resources/>
- <connections>
-  <connection>
-   <sender>Cancel</sender>
-   <signal>clicked()</signal>
-   <receiver>ShareFileWindow</receiver>
-   <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>169</x>
-     <y>450</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>255</x>
-     <y>-8</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>Share</sender>
-   <signal>clicked()</signal>
-   <receiver>ShareFileWindow</receiver>
-   <slot>close()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>432</x>
-     <y>453</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>393</x>
-     <y>-12</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
- <slots>
-  <slot>getFiles()</slot>
- </slots>
+ <connections/>
 </ui>
