@@ -16,7 +16,7 @@ int min(int a, int b)
 }
 
 Connection::Connection(const int &socket, int interval, sockaddr_in *address)
-    : socket(socket), state(State::NEW), interval(interval), address(address), completed(false), peer(nullptr), info_hash(nullptr)
+    : socket(socket), state(State::NEW), interval(10), address(address), completed(false), peer(), info_hash(nullptr)
 {
 }
 
@@ -27,9 +27,13 @@ Connection::~Connection()
 
 void Connection::closeConnection()
 {
-    if(info_hash == nullptr)
+    if(info_hash != nullptr)
     {
-        Server::getInstance()->getTorrentInfo(info_hash.get()).removePeer(*peer, completed);
+        Server::getInstance()->getTorrentInfo(info_hash.get()).removePeer(peer, completed);
+    }
+    else
+    {
+        std::cout << "Pusty info hash" << std::endl;
     }
     
     if (state == State::CLOSED)
@@ -101,18 +105,25 @@ bool Connection::createResponse()
     }
 
     std::shared_ptr <bencode::String> temp_info_hash = std::dynamic_pointer_cast<bencode::String> ((*request)["info_hash"]);
-    std::shared_ptr <bencode::String> event = std::dynamic_pointer_cast<bencode::String> ((*request)["event"]);
+    std::shared_ptr <bencode::String> event;
+
+    if((*request)["event"] != nullptr)
+    {
+        event = std::dynamic_pointer_cast<bencode::String> ((*request)["event"]);
+        std::cout << event->code() << std::endl;
+    }
+
     std::shared_ptr <bencode::Int> left = std::dynamic_pointer_cast<bencode::Int>((*request)["left"]);
 
     Peer temp_peer = readPeerInfo(*request);
 
-    if(info_hash == nullptr)
+    if(info_hash.get() == nullptr)
     {
         info_hash = temp_info_hash;
     }
     else if (*info_hash != *temp_info_hash)
     {
-        printf("NNiepoprawny hash pliku...");
+        printf("Niepoprawny hash pliku...");
 
         response.setF_reason("Wrong info hash!");
 
@@ -121,30 +132,39 @@ bool Connection::createResponse()
         return false;
     }
 
-    if (*event == L"started")
+    if (event != nullptr)
     {
-        state = State::CONNECTED;
+        if (*event == L"started")
+        {
+            state = State::CONNECTED;
 
-        completed = (left->getValue() == 0);
+            completed = (left->getValue() == 0);
 
-        server->getTorrentInfo(info_hash.get()).addPeer(temp_peer, completed);
-        peer = server->getTorrentInfo(info_hash.get()).getPeer(temp_peer.id);
+            server->getTorrentInfo(info_hash.get()).addPeer(temp_peer, completed);
+        }
+        else if (*event == L"stopped")
+        {
+            closeConnection();
+
+            return true;
+        }
+        else if (*event == L"completed")
+        {
+            completed = true;
+
+            server->getTorrentInfo(info_hash.get()).setCompleted(peer, completed);
+        }
     }
-    else if (*event == L"stopped")
+
+    if(peer.id != temp_peer.id || peer.address != temp_peer.address || peer.port != temp_peer.port)
     {
-        closeConnection();
-
-        return true;
-    }
-    else if (*event == L"completed")
-    {
-        completed = true;
-
-        server->getTorrentInfo(info_hash.get()).setCompleted(*peer, completed);
+        peer.id = temp_peer.id;
+        peer.address = temp_peer.address;
+        peer.port = temp_peer.port;
     }
 
 
-    if(peer == nullptr)
+    if(peer.id.empty())
     {
         printf("Oczekiwano wysłania wiadomości started...");
 
@@ -155,23 +175,15 @@ bool Connection::createResponse()
         return false;
     }
 
-    if(peer->id != temp_peer.id && peer->address != temp_peer.address && peer->port != temp_peer.port)
-    {
-        *peer = temp_peer;
-    }
-
+    std::cout << completed << std::endl;
 
     if(!completed)
     {
-        const std::vector<Peer>& peers = server->getTorrentInfo(info_hash.get()).getRandomPeers(50);
-        std::vector <Peer> randomPeer = std::vector <Peer> (peers.begin(), peers.end());
+        const std::vector<Peer> peers = server->getTorrentInfo(info_hash.get()).getRandomPeers(50, peer);
 
-        for(int i = 0; i < min(randomPeer.size(), 50); ++i)
+        for(int i = 0; i < peers.size(); ++i)
         {
-            if(peer->id != randomPeer[i].id)
-            {
-                response.addPeer(randomPeer[i]);
-            }
+            response.addPeer(peers[i]);
         }
     }
 
@@ -190,10 +202,8 @@ bool Connection::createResponse()
 
 Peer Connection::readPeerInfo(bencode::Dict &request)
 {
-    std::shared_ptr <bencode::String> id = std::dynamic_pointer_cast<bencode::String> (request["peer_id"]);
     std::shared_ptr <bencode::Int> port = std::dynamic_pointer_cast<bencode::Int>(request["port"]);
 
-    std::cout << request["event"]->code() << std::endl;
     std::cout << request["info_hash"]->code() << std::endl;
     std::cout << request["peer_id"]->code() << std::endl;
     std::cout << request["port"]->code() << std::endl;
@@ -201,11 +211,11 @@ Peer Connection::readPeerInfo(bencode::Dict &request)
 
     Peer temp_peer;
 
-    temp_peer.id = std::string(id->begin(), id->end());
+    temp_peer.id = request["peer_id"]->code().substr(3);
 
-    std::cout << std::endl;
+    std::cout << "Peer id: " << temp_peer.id << std::endl;
 
-    char ip_address[20];
+    char ip_address[60];
     inet_ntop(AF_INET, &(address->sin_addr), ip_address, sizeof(ip_address));
     temp_peer.address = std::string(ip_address);
     temp_peer.port = port->getValue();

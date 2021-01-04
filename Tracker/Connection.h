@@ -22,7 +22,7 @@ protected:
     sockaddr_in* address;
 
     std::shared_ptr <std::wstring> info_hash;
-    Peer* peer;
+    Peer peer;
     bool completed;
 
     int socket;

@@ -2,6 +2,8 @@
 
 #include <algorithm>
 
+#include <iostream>
+
 TorrentInstanceInfo::TorrentInstanceInfo()
     :num_completed(0), num_incompleted(0)
 {
@@ -51,29 +53,22 @@ void TorrentInstanceInfo::removePeer(const Peer& peer, bool completed)
     if(iterator != peers.end())
     {
         peers.erase(iterator);
-    }
 
-    if(completed)
-    {
-        --num_completed;
+        std::cout << "Usuwanie peera " + peer.id << std::endl;
+
+        if(completed)
+        {
+            --num_completed;
+        }
+        else
+        {
+            --num_incompleted;
+        }
     }
     else
     {
-        --num_incompleted;
+        std::cout << "Nie znaleziono peera " + peer.id << std::endl;
     }
-}
-
-Peer* TorrentInstanceInfo::getPeer(const std::string& peerId)
-{
-    for(size_t i = 0; i < peers.size(); ++i)
-    {
-        if(peers[i].id == peerId)
-        {
-            return &peers[i];
-        }
-    }
-
-    return nullptr;
 }
 
 void TorrentInstanceInfo::setCompleted(const Peer& peer, bool completed)
@@ -102,24 +97,39 @@ const size_t& TorrentInstanceInfo::getIncompleted()
     return num_incompleted;
 }
 
-const std::vector <Peer> TorrentInstanceInfo::getRandomPeers(const size_t peerCount)
+const std::vector <Peer> TorrentInstanceInfo::getRandomPeers(const size_t peerCount, Peer peer)
 {
-    std::random_shuffle(peers.begin(), peers.end());
-
     size_t count;
 
-    if(peerCount < peers.size())
+    std::vector <Peer> result(peers.begin(), peers.end());
+
+    std::vector <Peer>::iterator iterator = result.end();
+    
+    for(size_t i = 0; i < result.size(); ++i)
+    {
+        if(result[i].id == peer.id)
+        {
+            iterator = result.begin() + i;
+
+            break;
+        }
+    }
+
+    if(iterator != result.end())
+    {
+        result.erase(iterator);
+    }
+
+    if(peerCount < result.size())
     {
         count = peerCount;
     }
     else
     {
-        count = peers.size();
+        count = result.size();
     }
 
-    std::random_shuffle(peers.begin(), peers.end());
+    std::random_shuffle(result.begin(), result.end());
 
-    std::vector <Peer> result(peers.begin(), peers.begin() + count);
-
-    return result;
+    return std::vector <Peer> (result.begin(), result.begin() + count);
 }
