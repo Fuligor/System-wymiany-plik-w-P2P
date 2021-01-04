@@ -22,12 +22,12 @@ public:
     void addPeer(const Peer& peer, bool completed);
     void removePeer(const Peer& peer, bool completed);
     void setCompleted(const Peer& peer, bool completed);
-    Peer* getPeer(const std::string& peerId);
+    Peer getPeer(const std::string& peerId);
 
     const size_t& getCompleted();
     const size_t& getIncompleted();
 
-    const std::vector <Peer> getRandomPeers(const size_t peerCount);
+    const std::vector <Peer> getRandomPeers(const size_t peerCount, Peer peer);
 };
 
 #endif
