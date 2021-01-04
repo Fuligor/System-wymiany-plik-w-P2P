@@ -48,7 +48,7 @@ bencode::Int* bencode::Decoder::int_decoder(const std::wstring& string)
 
 	buf = getline(string, L"e");
 
-	return new Int(std::stoi(buf));
+	return new Int(std::stoll(buf));
 }
 
 bencode::String* bencode::Decoder::string_decoder(const std::wstring& string)
@@ -58,7 +58,7 @@ bencode::String* bencode::Decoder::string_decoder(const std::wstring& string)
 
 	buf = getline(string, L":");
 
-	size = std::stoi(buf);
+	size = std::stoll(buf);
 
 	buf = string.substr(position, size);
 

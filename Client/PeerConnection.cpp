@@ -7,11 +7,15 @@
 
 #include <qdebug.h>
 
-PeerConnection::PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File* mFile, TorrentDownloader* parent)
-	:QObject(parent), socket(tcpSocket), /*isInitialized(false),*/ infoHash(infoHash), mFile(mFile), /*amchoked(true), aminterested(false), peerchoked(true), peerinterested(false),*/ 
-	havePieces(mFile->getFragCount()), fragBuff(""), toDownload(0), isDownloading(false), download_index(0)
+PeerConnection::PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File* mFile, BitSet& myPieces, TorrentDownloader* parent)
+	:QObject(parent), socket(tcpSocket), /*isInitialized(false),*/ infoHash(infoHash), mFile(mFile), /*amchoked(true), aminterested(false), peerchoked(true), peerinterested(false),*/
+	havePieces(mFile->getFragCount()), fragBuff(""), toDownload(0), isDownloading(false), download_index(0), myPieces(myPieces)
 {
+	connectTimer.setSingleShot(true);
+
 	connect(socket, SIGNAL(readyRead()), this, SLOT(readData()));
+	connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onDisconnection()));
+	connect(&connectTimer, SIGNAL(timeout()), this, SLOT(onDisconnection()));
 	connect(this, SIGNAL(pieceDownloaded(size_t)), parent, SLOT(onPieceDownloaded(size_t)));
 	connect(parent, SIGNAL(pieceDownloaded(size_t)), this, SLOT(have(size_t)));
 	connect(this, SIGNAL(initialize(std::string, PeerConnection*)), parent, SLOT(peerHandshake(std::string, PeerConnection*)));
@@ -19,6 +23,8 @@ PeerConnection::PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File
 	connect(this, SIGNAL(peerdisconnect(std::string, PeerConnection*)), parent, SLOT(closeConnection(std::string, PeerConnection*)));
 	connect(this, SIGNAL(downloadRequest(PeerConnection*)), parent, SLOT(downloadMenager(PeerConnection*)));
 	connect(this, SIGNAL(uploaded(size_t)), parent, SLOT(onPieceUploaded(size_t)));
+
+	connectTimer.start(5000);
 
 	connect(socket, SIGNAL(connected()), this, SLOT(handshake()));
 	if (socket->state() == QAbstractSocket::ConnectedState)
@@ -29,6 +35,12 @@ PeerConnection::PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File
 
 PeerConnection::~PeerConnection()
 {
+	socket->disconnectFromHost();
+
+	if(!socket->waitForDisconnected(5000))
+	{
+		socket->abort();
+	}
 }
 
 void PeerConnection::downloadPiece(size_t index, size_t pieceSize, std::string fragHash)
@@ -104,11 +116,16 @@ void PeerConnection::have(size_t index)
 	message = write(message.size()) + message;
 
 	socket->write(message.data(), message.size());
+
+	if(havePieces.getCount() == havePieces.getSize() && myPieces.getCount() == myPieces.getSize())
+	{
+		socket->disconnectFromHost();
+	}
 }
 
-void PeerConnection::bitfield(BitSet& pieces)
+void PeerConnection::bitfield()
 {
-	std::string message = "5" + std::string(pieces.getData(), BitSet::getPageCount(pieces.getSize()));
+	std::string message = "5" + std::string(myPieces.getData(), BitSet::getPageCount(myPieces.getSize()));
 	message = write(message.size()) + message;
 
 	socket->write(message.data(), message.size());
@@ -154,8 +171,8 @@ void PeerConnection::readData()
 
 	while (buffor.size() >= sizeof(size_t))
 	{
-		int message_size = (int)read(buffor.substr(0, sizeof(size_t)));
-		if (message_size <= buffor.size() - sizeof(size_t))
+		int message_size = read(buffor.substr(0, sizeof(size_t)));
+		if (message_size + sizeof(size_t) <= buffor.size())
 		{
 			std::string message = buffor.substr(sizeof(size_t));
 			/*if (message[0] == '0')
@@ -237,6 +254,8 @@ void PeerConnection::readData()
 			}
 			else if (message[0] == '9')
 			{
+				connectTimer.stop();
+
 				std::string hash = message.substr(1, 20);
 				peerId = message.substr(21);
 				if (hash != infoHash)
@@ -248,7 +267,7 @@ void PeerConnection::readData()
 					emit initialize(peerId, this);
 				}
 			}
-			buffor.erase(0, message_size + sizeof(size_t));
+			buffor = buffor.substr(message_size + sizeof(size_t));
 		}
 	}
 
@@ -256,5 +275,7 @@ void PeerConnection::readData()
 
 void PeerConnection::onDisconnection()
 {
+	socket->abort();
+
 	emit peerdisconnect(peerId, this);
 }

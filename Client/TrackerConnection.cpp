@@ -11,7 +11,7 @@ TrackerConnection::TrackerConnection(const std::shared_ptr <bencode::Dict>& torr
 	inActiveState(new QWaitCondition()), request(torrentDict), listenerPort(listenerPort)
 {
 	connect(socket, SIGNAL(connected()), this, SLOT(onConnection()));
-	//connect(socket, SIGNAL(stateChanged(QAbstractSocket::SocketState)), this, SLOT(onConnection()));
+	connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(retryConnect()));
 	connect(connectTimer, SIGNAL(timeout()), this, SLOT(retryConnect()));
 	connect(socket, SIGNAL(readyRead()), this, SLOT(read()));
 	connect(socket, SIGNAL(disconnected()), this, SLOT(reconnect()));
@@ -24,7 +24,7 @@ TrackerConnection::TrackerConnection(const std::shared_ptr <bencode::Dict>& torr
 	initConnection(torrentDict);
 	initRequest();
 
-	isUpdateSheduled = false;
+	isUpdateSheduled = true;
 	isTimerTimeouted = false;
 }
 
@@ -171,12 +171,15 @@ void TrackerConnection::stopRequest()
 		request.setEvent("stopped");
 		requestTimer->stop();
 		sendRequest();
-		socket->waitForDisconnected();
+		socket->disconnectFromHost();
+		if(!socket->waitForDisconnected(5000))
+		{
+			socket->abort();
+		}
+
 		setState(ConnectionStatus::CLOSED);
 		inActiveState->wakeAll();
 	}
-
-	socket->disconnect();
 
 	mutex->unlock();
 }
@@ -184,6 +187,8 @@ void TrackerConnection::stopRequest()
 void TrackerConnection::completeRequest()
 {
 	mutex->lock();
+
+	isUpdateSheduled = false;
 
 	if (currentState == ConnectionStatus::AWAITING)
 	{

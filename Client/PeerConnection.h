@@ -6,6 +6,7 @@
 #include <list>
 
 #include <QString>
+#include <QTimer>
 
 #include "Types.h"
 #include "Bencode.h"
@@ -26,11 +27,12 @@ class PeerConnection
 private:
     File* mFile;
     QTcpSocket* socket;
-    //QTimer timer;
+    QTimer connectTimer;
 
     std::string peerId;
     std::string infoHash;
     std::string buffor;
+    BitSet& myPieces;
     BitSet havePieces;
     std::string fragBuff;
     size_t toDownload;
@@ -39,7 +41,7 @@ private:
     std::string expectedHash;
     size_t download_index;
 public:
-    PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File* mFile, TorrentDownloader* parent);
+    PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File* mFile, BitSet& myPieces, TorrentDownloader* parent);
     ~PeerConnection();
     void downloadPiece(size_t index, size_t pieceSize, std::string fragHash);
     const BitSet& getPieces();
@@ -48,7 +50,7 @@ protected:
     std::string write(size_t size);
     size_t read(const std::string& size);
 public slots:
-    void bitfield(BitSet& pieces);
+    void bitfield();
 protected slots:
     void handshake();
     void have(size_t index);
