@@ -11,7 +11,7 @@ class TorrentFile
         int pieceLength;
 
     public:
-        TorrentFile(const std::string fname, const std::string Utracker, int pLength);
+        TorrentFile(const std::string fname, const std::string Utracker, size_t pLength);
         ~TorrentFile();
         void createFile();
 };

@@ -22,10 +22,10 @@ class TrackerRequest
         TrackerRequest(std::shared_ptr <bencode::Dict> torrentDict);
         ~TrackerRequest();
         void setPeer_id(std::string p_id);
-        void setPort(int po);
-        void setLeft(int left);
-        void setUploaded(int up);
-        void setDownloaded(int down);
+        void setPort(size_t po);
+        void setLeft(size_t left);
+        void setUploaded(size_t up);
+        void setDownloaded(size_t down);
         void setCompact(bool com);
         void setNo_peer_id(bool n_p_id);
         void setEvent(std::string ev);

@@ -22,7 +22,7 @@ size_t powi(size_t a, size_t b)
 
 FileSize::FileSize(size_t size, SizeUnit unit)
 {
-	this->size = size * powi(size, (int) unit);
+	this->size = size * powi(1024, (int) unit);
 }
 
 size_t FileSize::to_int() const

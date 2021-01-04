@@ -40,6 +40,7 @@ private:
 	TrackerConnection* tracker;
 	TorrentDownloadStatus downloadStatus;
 	std::string infoHash;
+	std::string piecesHash;
 	std::set <Peer> availablePeers;
 	std::set <std::string> connectedPeers;
 	BitSet& pieces;

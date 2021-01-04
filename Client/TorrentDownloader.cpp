@@ -21,6 +21,12 @@ TorrentDownloader::TorrentDownloader(const std::shared_ptr <bencode::Dict>& torr
 	tcpServer.listen();
 	tracker = new TrackerConnection(torrentDict, tcpServer.serverPort(), this);
 	pieceSize = std::dynamic_pointer_cast <bencode::Int> ((*info)["piece length"])->getValue();
+	std::shared_ptr <bencode::String> temp = std::dynamic_pointer_cast <bencode::String> ((*info)["pieces"]);
+	
+	for (int i = 0; i < temp->size(); ++i)
+	{
+		piecesHash += (char) temp->at(i);
+	}
 	
 	downloadStatus.fileName = std::dynamic_pointer_cast <bencode::String> ((*info)["name"])->data();
 	downloadStatus.fileSize = std::dynamic_pointer_cast <bencode::Int> ((*info)["length"])->getValue();
@@ -192,7 +198,7 @@ void TorrentDownloader::downloadMenager(PeerConnection* connection)
 		size_t randomPiece = std::rand() % size + 1;
 		size_t index = interestingPieces.getSetedBit(randomPiece);
 		piecesToDownload.reset(index);
-		connection->downloadPiece(index, getPieceSize(index), (*mFile)[(const unsigned int)index]->getHash().toStdString());
+		connection->downloadPiece(index, getPieceSize(index), piecesHash.substr(index * 20, 20));
 	}
 	mutex.unlock();
 }

@@ -29,22 +29,22 @@ void TrackerRequest::setPeer_id(std::string p_id)
     peer_id.reset(new bencode::String(p_id));
     return;
 }
-void TrackerRequest::setPort(int po)
+void TrackerRequest::setPort(size_t po)
 {
     port.reset(new bencode::Int(po));
     return;
 }
-void TrackerRequest::setLeft(int left)
+void TrackerRequest::setLeft(size_t left)
 {
     this->left.reset(new bencode::Int(left));
     return;
 }
-void TrackerRequest::setUploaded(int up)
+void TrackerRequest::setUploaded(size_t up)
 {
     uploaded.reset(new bencode::Int(up));
     return;
 }
-void TrackerRequest::setDownloaded(int down)
+void TrackerRequest::setDownloaded(size_t down)
 {
     downloaded.reset(new bencode::Int(down));
     return;

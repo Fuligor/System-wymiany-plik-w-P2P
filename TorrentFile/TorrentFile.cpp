@@ -9,7 +9,7 @@
 
 #include "File.h"
 
-TorrentFile::TorrentFile(const std::string fname, const std::string Utracker, int pLength)
+TorrentFile::TorrentFile(const std::string fname, const std::string Utracker, size_t pLength)
 {
     fileName = QString::fromStdString(fname);
     URLtracker = QString::fromStdString(Utracker);

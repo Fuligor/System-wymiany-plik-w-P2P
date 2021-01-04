@@ -40,7 +40,7 @@ TrackerConnection::~TrackerConnection()
 void TrackerConnection::setLeft(size_t left)
 {
 	mutex->lock();
-	request.setLeft((int)left);
+	request.setLeft(left);
 	mutex->unlock();
 }
 
@@ -266,6 +266,13 @@ void TrackerConnection::decodeResponse()
 
 		if (response == nullptr)
 		{
+			return;
+		}
+
+		if((*response)["failture reason"])
+		{
+			std::cerr << (*response)["failture reason"]->code() << std::endl;
+
 			return;
 		}
 
