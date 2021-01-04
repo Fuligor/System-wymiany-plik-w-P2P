@@ -42,7 +42,7 @@ void Window::torrentStatusUpdated(const std::string torrentId, const TorrentDown
     if(idToRow.find(torrentId) == idToRow.end())
     {
         rowIndex = ui.DownloadedFiles->rowCount();
-        ui.DownloadedFiles->insertRow(rowIndex);
+        ui.DownloadedFiles->insertRow((int)rowIndex);
         idToRow[torrentId] = rowIndex;
         rowToStatus[rowIndex] = status;
     }
@@ -54,7 +54,7 @@ void Window::torrentStatusUpdated(const std::string torrentId, const TorrentDown
 
     if(ui.DownloadedFiles->currentRow() == rowIndex)
     {
-        updateBottomBar(rowIndex, 0, 0, 0);
+        updateBottomBar((int)rowIndex, 0, 0, 0);
     }
 
     switch (status->connectionState)
@@ -76,17 +76,17 @@ void Window::torrentStatusUpdated(const std::string torrentId, const TorrentDown
         break;
     }
 
-    ui.DownloadedFiles->setItem(rowIndex, 0, new QTableWidgetItem(QString::fromStdWString(status->fileName)));
-    ui.DownloadedFiles->setItem(rowIndex, 1, new QTableWidgetItem(QString::fromStdString(status->fileSize.toString())));
-    ui.DownloadedFiles->setItem(rowIndex, 2, new QTableWidgetItem(connectionState));
-    ui.DownloadedFiles->setItem(rowIndex, 3, new QTableWidgetItem(QString::fromStdString(torrentId)));
+    ui.DownloadedFiles->setItem((int)rowIndex, 0, new QTableWidgetItem(QString::fromStdWString(status->fileName)));
+    ui.DownloadedFiles->setItem((int)rowIndex, 1, new QTableWidgetItem(QString::fromStdString(status->fileSize.toString())));
+    ui.DownloadedFiles->setItem((int)rowIndex, 2, new QTableWidgetItem(connectionState));
+    ui.DownloadedFiles->setItem((int)rowIndex, 3, new QTableWidgetItem(QString::fromStdString(torrentId)));
 }
 
 void Window::updateBottomBar(int currentRow, int currentColumn, int previousRow, int previousColumn)
 {
     const TorrentDownloadStatus* status = rowToStatus[currentRow];
 
-    ui.progressBar->setValue(100 * status->downloadedSinceStart.to_int() / status->fileSize.to_int());
+    ui.progressBar->setValue((int)(100 * status->downloadedSinceStart.to_int() / status->fileSize.to_int()));
 
     ui.ETA->setText(status->estimatedEndTime.toString());
     ui.downloadTime->setText(QString::number(status->startTime.secsTo(QDateTime::currentDateTime())));

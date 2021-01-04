@@ -121,7 +121,7 @@ void Torrent::read()
 	size_t pieceCount;
 	size_t torrentPathLenght;
 	size_t downloadPathLenght;
-	size_t connectionIdSize;
+	//size_t connectionIdSize;
 	char* buffer;
 	QByteArray buf;
 

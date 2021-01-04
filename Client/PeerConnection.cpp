@@ -154,7 +154,7 @@ void PeerConnection::readData()
 
 	while (buffor.size() >= sizeof(size_t))
 	{
-		int message_size = read(buffor.substr(0, sizeof(size_t)));
+		int message_size = (int)read(buffor.substr(0, sizeof(size_t)));
 		if (message_size <= buffor.size() - sizeof(size_t))
 		{
 			std::string message = buffor.substr(sizeof(size_t));
@@ -195,7 +195,7 @@ void PeerConnection::readData()
 				size_t index = read(message.substr(1, sizeof(size_t)));
 				size_t begin = read(message.substr(1 + sizeof(size_t), sizeof(size_t)));
 				size_t length = read(message.substr(1 + 2 * sizeof(size_t), sizeof(size_t)));
-				piece(index, begin, (*mFile)[index]->getData().mid(begin, length).toStdString());
+				piece(index, begin, (*mFile)[(const unsigned int)index]->getData().mid((int)begin, (int)length).toStdString());
 				
 			}
 			else if (message[0] == '7')
@@ -217,7 +217,7 @@ void PeerConnection::readData()
 
 						if (hash == expectedHash)
 						{
-							mFile->setFrag(fragBuff, index);
+							mFile->setFrag(fragBuff, (int)index);
 							fragBuff = "";
 							isDownloading = false;
 							emit pieceDownloaded(index);

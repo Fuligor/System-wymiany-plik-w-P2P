@@ -190,7 +190,7 @@ void TorrentDownloader::downloadMenager(PeerConnection* connection)
 		size_t randomPiece = std::rand() % size + 1;
 		size_t index = interestingPieces.getSetedBit(randomPiece);
 		piecesToDownload.reset(index);
-		connection->downloadPiece(index, getPieceSize(index), (*mFile)[index]->getHash().toStdString());
+		connection->downloadPiece(index, getPieceSize(index), (*mFile)[(const unsigned int)index]->getHash().toStdString());
 	}
 	mutex.unlock();
 }
@@ -209,13 +209,13 @@ void TorrentDownloader::onPieceDownloaded(size_t index)
 
 	if(downloadStatus.downloadedSinceStart.to_int() == downloadStatus.fileSize.to_int())
 	{
-		downloadStatus.connectionState == TorrentDownloadStatus::State::SEEDING;
+		downloadStatus.connectionState = TorrentDownloadStatus::State::SEEDING;
 
 		tracker->completeRequest();
 	}
 	else
 	{
-		downloadStatus.connectionState == TorrentDownloadStatus::State::LEECHING;
+		downloadStatus.connectionState = TorrentDownloadStatus::State::LEECHING;
 	}
 
 	emit pieceDownloaded(index);

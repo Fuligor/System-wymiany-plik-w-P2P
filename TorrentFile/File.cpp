@@ -15,7 +15,7 @@ File::File(const QString& name, const size_t& fragSize, QObject* parent)
 	unsigned int fragCount = ceil((double) mFileSize / mFragSize);
 	mFileFragments.reserve(fragCount);
 
-	for(unsigned int position = 0; position < mFileSize; position += fragSize)
+	for(unsigned int position = 0; position < mFileSize; position += (unsigned int)fragSize)
 	{
 		mFileFragments.push_back(new FileFrag(mFile, position, mFragSize, &mutex, this));
 	}
@@ -29,7 +29,7 @@ File::File(const QString& name, const size_t& fragSize, const size_t& fileSize, 
 	unsigned int fragCount = ceil((double)mFileSize / mFragSize);
 	mFileFragments.reserve(fragCount);
 
-	for (unsigned int position = 0; position < mFileSize; position += fragSize)
+	for (unsigned int position = 0; position < mFileSize; position += (unsigned int)fragSize)
 	{
 		mFileFragments.push_back(new FileFrag(mFile, position, mFragSize, &mutex, this));
 	}

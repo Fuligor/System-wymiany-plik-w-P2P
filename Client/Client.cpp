@@ -69,7 +69,7 @@ const std::string& Client::getConfigPath()
 
 void Client::shareFile(const std::string& fileName, const std::string& trackerAddres, const size_t pieceSize)
 {
-    TorrentFile file(fileName, trackerAddres, pieceSize);
+    TorrentFile file(fileName, trackerAddres, (int)pieceSize);
     file.createFile();
 
     new Torrent(fileName + ".torrent", fileName, true);
