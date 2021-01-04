@@ -13,7 +13,7 @@ std::wstring bencode::Decoder::getline(const std::wstring& string, const std::ws
 	}
 
 	result = string.substr(position, find - position);
-	position = find + 1;
+	position = find + (size_t)1;
 
 	return result;
 }
@@ -98,7 +98,7 @@ bencode::Dictionary* bencode::Decoder::dict_decoder(const std::wstring& string)
 
 	while (true)
 	{
-		Type decoded_type = decode_type(string[position]);
+		Type decoded_type = decode_type((const char)string[position]);
 
 		if (decoded_type == Type::END)
 		{
@@ -123,7 +123,7 @@ bencode::ICode* bencode::Decoder::core_decoder(const std::wstring& string)
 {
 	ICode* result = nullptr;
 
-	Type decoded_type = decode_type(string[position]);
+	Type decoded_type = decode_type((const char)string[position]);
 
 	switch (decoded_type)
 	{

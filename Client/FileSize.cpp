@@ -7,7 +7,7 @@ size_t powi(size_t a, size_t b)
 		return 1;
 	}
 
-	int result = powi(a, b / 2);
+	size_t result = powi(a, b / 2);
 
 	result *= result;
 
@@ -32,7 +32,7 @@ size_t FileSize::to_int() const
 
 std::string FileSize::toString() const
 {
-	double temp = size;
+	double temp = (double)size;
 	size_t unit = 0;
 
 
