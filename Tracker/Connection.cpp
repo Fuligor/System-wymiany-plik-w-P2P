@@ -189,7 +189,6 @@ bool Connection::createResponse()
         }
     }
 
-    response.setTracker_id("0");
     response.setComplete(server->getTorrentInfo(info_hash.get()).getCompleted());
     response.setIncomplete(server->getTorrentInfo(info_hash.get()).getIncompleted());
 

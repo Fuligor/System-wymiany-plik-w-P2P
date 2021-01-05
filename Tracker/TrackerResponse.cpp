@@ -20,11 +20,6 @@ void TrackerResponse::setInterval(int interv)
     interval = interv;
     return;
 }
-void TrackerResponse::setTracker_id(std::string tracker)
-{
-    tracker_id = tracker;
-    return;
-}
 void TrackerResponse::setComplete(int com)
 {
     complete = com;
@@ -54,7 +49,6 @@ std::string TrackerResponse::getResponse() const
         response["failure reason"] = std::make_shared <bencode::String> (f_reason);
     }
     response["interval"] = std::make_shared <bencode::Int> (interval);
-    response["tracker id"] = std::make_shared <bencode::String> (tracker_id);
     response["complete"] = std::make_shared <bencode::Int> (complete);
     response["incomplete"] = std::make_shared <bencode::Int> (incomplete);
     response["peers"] = std::make_shared <bencode::List> (peers);

@@ -272,7 +272,6 @@ void TorrentDownloader::onPieceDownloaded(uint64_t index)
 	downloadStatus.downloadedSinceStart += pieceSize;
 
 	tracker->setLeft(downloadStatus.fileSize.to_int() - downloadStatus.downloadedSinceStart.to_int());
-	tracker->setDownloaded(downloadStatus.downloaded.to_int());
 
 	if(downloadStatus.downloadedSinceStart.to_int() == downloadStatus.fileSize.to_int())
 	{
@@ -291,8 +290,6 @@ void TorrentDownloader::onPieceDownloaded(uint64_t index)
 void TorrentDownloader::onPieceUploaded(uint64_t pieceSize)
 {
 	downloadStatus.uploaded += pieceSize;
-
-	tracker->setUploaded(downloadStatus.uploaded.to_int());
 
 	emit pieceUploaded(pieceSize);
 }
