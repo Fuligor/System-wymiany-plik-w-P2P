@@ -47,9 +47,9 @@ public:
     TrackerConnection(const std::shared_ptr <bencode::Dict>& torrentDict, quint16 listenerPort, TorrentDownloader* parent);
     ~TrackerConnection();
 
-    void setLeft(size_t left);
-    void setDownloaded(size_t downloaded);
-    void setUploaded(size_t uploaded);
+    void setLeft(uint64_t left);
+    void setDownloaded(uint64_t downloaded);
+    void setUploaded(uint64_t uploaded);
 protected:
     void initRequest();
     void initConnection(const std::shared_ptr <bencode::Dict>& torrentDict);

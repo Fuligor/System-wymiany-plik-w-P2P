@@ -11,9 +11,9 @@ class FileFrag : public QObject
 	mutable QMutex* mutex;
 	mutable QFile* mFile;
 	unsigned int mPosition;
-	size_t mSize;
+	uint64_t mSize;
 public:
-	FileFrag(QFile* file, const unsigned int position, size_t size, QMutex* mutex, QObject *parent = nullptr);
+	FileFrag(QFile* file, const unsigned int position, uint64_t size, QMutex* mutex, QObject *parent = nullptr);
 	~FileFrag();
 
 	void setData(std::string frag);

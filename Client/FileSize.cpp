@@ -1,13 +1,13 @@
 #include "FileSize.h"
 
-size_t powi(size_t a, size_t b)
+uint64_t powi(uint64_t a, uint64_t b)
 {
 	if (b == 0)
 	{
 		return 1;
 	}
 
-	size_t result = powi(a, b / 2);
+	uint64_t result = powi(a, b / 2);
 
 	result *= result;
 
@@ -20,12 +20,12 @@ size_t powi(size_t a, size_t b)
 
 }
 
-FileSize::FileSize(size_t size, SizeUnit unit)
+FileSize::FileSize(uint64_t size, SizeUnit unit)
 {
 	this->size = size * powi(1024, (int) unit);
 }
 
-size_t FileSize::to_int() const
+uint64_t FileSize::to_int() const
 {
     return size;
 }
@@ -33,7 +33,7 @@ size_t FileSize::to_int() const
 std::string FileSize::toString() const
 {
 	double temp = (double)size;
-	size_t unit = 0;
+	uint64_t unit = 0;
 
 
 	while(temp > 1024.0)
@@ -44,7 +44,7 @@ std::string FileSize::toString() const
 
 	std::string result = std::to_string(temp);
 
-	size_t pos = result.find(".");
+	uint64_t pos = result.find(".");
 	
 	if(pos != std::string::npos)
 	{
@@ -79,7 +79,7 @@ FileSize FileSize::operator+(const FileSize& fileSize)
     return FileSize(size + fileSize.size);
 }
 
-FileSize FileSize::operator+(const size_t& fileSize)
+FileSize FileSize::operator+(const uint64_t& fileSize)
 {
     return FileSize(size + fileSize);
 }
@@ -91,7 +91,7 @@ FileSize FileSize::operator+=(const FileSize& fileSize)
 	return *this;
 }
 
-FileSize FileSize::operator+=(const size_t& fileSize)
+FileSize FileSize::operator+=(const uint64_t& fileSize)
 {
 	size += fileSize;
 
@@ -103,7 +103,7 @@ FileSize FileSize::operator-(const FileSize& fileSize)
     return FileSize(size - fileSize.size);
 }
 
-FileSize FileSize::operator-(const size_t& fileSize)
+FileSize FileSize::operator-(const uint64_t& fileSize)
 {
     return FileSize(size - fileSize);
 }
@@ -115,14 +115,14 @@ FileSize FileSize::operator-=(const FileSize& fileSize)
 	return  *this;
 }
 
-FileSize FileSize::operator-=(const size_t& fileSize)
+FileSize FileSize::operator-=(const uint64_t& fileSize)
 {
 	size -= fileSize;
 
 	return  *this;
 }
 
-FileSize FileSize::operator=(const size_t& fileSize)
+FileSize FileSize::operator=(const uint64_t& fileSize)
 {
 	size = fileSize;
 

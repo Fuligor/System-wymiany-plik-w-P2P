@@ -38,7 +38,7 @@ public:
     Peer readPeerInfo(bencode::Dict &request);
     int getSocket();
 
-    void addToBuffer(const char* data, size_t size);
+    void addToBuffer(const char* data, uint64_t size);
     bencode::Dict* getReguest();
     bool createResponse();
     void sendResponse(const TrackerResponse& response);

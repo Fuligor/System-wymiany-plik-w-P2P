@@ -87,7 +87,7 @@ void Window::torrentStatusUpdated(const std::string torrentId, const TorrentDown
 
 void Window::updateBottomBar(int currentRow, int currentColumn, int previousRow, int previousColumn)
 {
-    if(currentRow > rowStatus.size())
+    if(currentRow > (int) rowStatus.size())
     {
         return;
     }
@@ -147,7 +147,7 @@ void Window::deleteFile()
         rowStatus.erase(rowStatus.begin() + rowIndex);
         ui.DownloadedFiles->removeRow(rowIndex);
 
-        size_t pos = torrentHash.rfind('/');
+        uint64_t pos = torrentHash.rfind('/');
 
         TorrentManager::getInstance().remove(torrentHash.substr(pos + 1));
     }

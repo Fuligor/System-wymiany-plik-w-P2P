@@ -67,7 +67,7 @@ const std::string& Client::getConfigPath()
     return Client::configPath;
 }
 
-void Client::shareFile(const std::string& fileName, const std::string& trackerAddres, const size_t pieceSize)
+void Client::shareFile(const std::string& fileName, const std::string& trackerAddres, const uint64_t pieceSize)
 {
     TorrentFile* file = new TorrentFile(fileName, trackerAddres, pieceSize);
     connect(file, SIGNAL(torrentCreated(TorrentFile*)), this, SLOT(onFileCreated(TorrentFile*)));

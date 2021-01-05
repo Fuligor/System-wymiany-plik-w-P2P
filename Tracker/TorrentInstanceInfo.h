@@ -12,8 +12,8 @@ class TorrentInstanceInfo
 {
     std::vector <Peer> peers;
 
-    size_t num_completed;
-    size_t num_incompleted;
+    uint64_t num_completed;
+    uint64_t num_incompleted;
 public:
     TorrentInstanceInfo();
     ~TorrentInstanceInfo();
@@ -24,10 +24,10 @@ public:
     void setCompleted(const Peer& peer, bool completed);
     Peer getPeer(const std::string& peerId);
 
-    const size_t& getCompleted();
-    const size_t& getIncompleted();
+    const uint64_t& getCompleted();
+    const uint64_t& getIncompleted();
 
-    const std::vector <Peer> getRandomPeers(const size_t peerCount, Peer peer);
+    const std::vector <Peer> getRandomPeers(const uint64_t peerCount, Peer peer);
 };
 
 #endif

@@ -22,7 +22,7 @@ inline const std::string InfoDictHash::toHexEncoding(std::string infoHash)
 {
 	std::string result;
 
-	for (size_t i = 0; i < infoHash.size(); ++i)
+	for (uint64_t i = 0; i < infoHash.size(); ++i)
 	{
 		result += toHexEncoding((unsigned char) infoHash[i] / 16);
 		result += toHexEncoding((unsigned char) infoHash[i] % 16);

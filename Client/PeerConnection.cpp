@@ -18,16 +18,16 @@ PeerConnection::PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File
 	
 	connect(socket, SIGNAL(readyRead()), this, SLOT(readData()));
 	connect(&connectTimer, SIGNAL(timeout()), this, SLOT(onDisconnection()));
-	connect(this, SIGNAL(pieceDownloaded(size_t)), parent, SLOT(onPieceDownloaded(size_t)));
-	connect(parent, SIGNAL(pieceDownloaded(size_t)), this, SLOT(have(size_t)));
+	connect(this, SIGNAL(pieceDownloaded(uint64_t)), parent, SLOT(onPieceDownloaded(uint64_t)));
+	connect(parent, SIGNAL(pieceDownloaded(uint64_t)), this, SLOT(have(uint64_t)));
 	connect(this, SIGNAL(initialize(std::string, PeerConnection*)), parent, SLOT(peerHandshake(std::string, PeerConnection*)));
 	connect(socket, SIGNAL(disconnected()), this, SLOT(onDisconnection()));
 	connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onDisconnection()));
 	connect(this, SIGNAL(peerdisconnect(std::string, PeerConnection*)), parent, SLOT(closeConnection(std::string, PeerConnection*)));
 	connect(this, SIGNAL(downloadRequest(PeerConnection*)), parent, SLOT(downloadMenager(PeerConnection*)));
-	connect(this, SIGNAL(uploaded(size_t)), parent, SLOT(onPieceUploaded(size_t)));
+	connect(this, SIGNAL(uploaded(uint64_t)), parent, SLOT(onPieceUploaded(uint64_t)));
 	connect(parent, SIGNAL(updateStatistics()), this, SLOT(updateStatistics()));
-	connect(this, SIGNAL(downloadCanceled(size_t)), parent, SLOT(onDownloadCanceled(size_t)));
+	connect(this, SIGNAL(downloadCanceled(uint64_t)), parent, SLOT(onDownloadCanceled(uint64_t)));
 	connect(this, SIGNAL(speedUpdated(FileSize, FileSize, FileSize)), 
 			parent, SLOT(speedUpdated(FileSize, FileSize, FileSize)));
 
@@ -60,7 +60,7 @@ PeerConnection::~PeerConnection()
 	}
 }
 
-void PeerConnection::downloadPiece(size_t index, size_t pieceSize, std::string fragHash)
+void PeerConnection::downloadPiece(uint64_t index, uint64_t pieceSize, std::string fragHash)
 {
 	isDownloading = true;
 	toDownload = pieceSize;
@@ -76,10 +76,10 @@ bool PeerConnection::getIsDownloading()
 {
 	return isDownloading;
 }
-std::string PeerConnection::write(size_t size)
+std::string PeerConnection::write(uint64_t size)
 {
 	std::string result;
-	for (size_t i = 0; i < sizeof(size_t); ++i)
+	for (uint64_t i = 0; i < sizeof(uint64_t); ++i)
 	{
 		unsigned char temp = size % 256;
 
@@ -90,15 +90,15 @@ std::string PeerConnection::write(size_t size)
 	return result;
 }
 
-size_t PeerConnection::read(const std::string& size)
+uint64_t PeerConnection::read(const std::string& size)
 {
-	size_t result = 0;
+	uint64_t result = 0;
 
-	for (size_t i = 0; i < sizeof(size_t); ++i)
+	for (uint64_t i = 0; i < sizeof(uint64_t); ++i)
 	{
 		unsigned char temp = (unsigned char) size[i];
 
-		result = result + ((size_t) temp << (i * 8));
+		result = result + ((uint64_t) temp << (i * 8));
 	}
 	return result;
 }
@@ -129,7 +129,7 @@ void PeerConnection::bitfield()
 }
 
 
-void PeerConnection::have(size_t index)
+void PeerConnection::have(uint64_t index)
 {
 	std::string idx = write(index);
 
@@ -149,7 +149,7 @@ void PeerConnection::have(size_t index)
 	}
 }
 
-void PeerConnection::request(size_t index, size_t begin)
+void PeerConnection::request(uint64_t index, uint64_t begin)
 {
 	download_index = index;
 	std::string idx = write(index);
@@ -166,7 +166,7 @@ void PeerConnection::request(size_t index, size_t begin)
 	statisticsMutex.unlock();
 }
 
-void PeerConnection::piece(size_t index, size_t begin, std::string block)
+void PeerConnection::piece(uint64_t index, uint64_t begin, std::string block)
 {
 	std::string idx = write(index);
 	std::string beg = write(begin);
@@ -185,7 +185,7 @@ void PeerConnection::piece(size_t index, size_t begin, std::string block)
 
 void PeerConnection::readData()
 {
-	size_t readedBytes = buffor.size();
+	uint64_t readedBytes = buffor.size();
 	buffor += socket->readAll().toStdString();
 	
 	readedBytes = buffor.size() - readedBytes;
@@ -194,12 +194,12 @@ void PeerConnection::readData()
 	downloadedSinceLastUpdate += readedBytes;
 	statisticsMutex.unlock();
 
-	while (buffor.size() >= sizeof(size_t))
+	while (buffor.size() >= sizeof(uint64_t))
 	{
-		int message_size = read(buffor.substr(0, sizeof(size_t)));
-		if (message_size + sizeof(size_t) <= buffor.size())
+		int message_size = read(buffor.substr(0, sizeof(uint64_t)));
+		if (message_size + sizeof(uint64_t) <= buffor.size())
 		{
-			std::string message = buffor.substr(sizeof(size_t), message_size);
+			std::string message = buffor.substr(sizeof(uint64_t), message_size);
 			
 			if (message[0] == '0')
 			{
@@ -234,15 +234,15 @@ void PeerConnection::readData()
 			}
 			else if (message[0] == '3')
 			{
-				size_t index = read(message.substr(1, sizeof(size_t)));
-				int begin = read(message.substr(1 + sizeof(size_t), sizeof(size_t)));
-				int length = read(message.substr(1 + 2 * sizeof(size_t), sizeof(size_t)));
+				uint64_t index = read(message.substr(1, sizeof(uint64_t)));
+				int begin = read(message.substr(1 + sizeof(uint64_t), sizeof(uint64_t)));
+				int length = read(message.substr(1 + 2 * sizeof(uint64_t), sizeof(uint64_t)));
 				piece(index, begin, (*mFile)[(const unsigned int) index]->getData().mid((int) begin, (int) length).toStdString());
 			}
 			else if (message[0] == '4')
 			{
-				size_t index = read(message.substr(1, sizeof(size_t)));
-				//size_t begin = read(message.substr(1 + sizeof(size_t), sizeof(size_t)));
+				uint64_t index = read(message.substr(1, sizeof(uint64_t)));
+				//uint64_t begin = read(message.substr(1 + sizeof(uint64_t), sizeof(uint64_t)));
 
 				if (index != download_index)
 				{
@@ -250,7 +250,7 @@ void PeerConnection::readData()
 				}
 				else
 				{
-					std::string block = message.substr(1 + 2 * sizeof(size_t));
+					std::string block = message.substr(1 + 2 * sizeof(uint64_t));
 
 					statisticsMutex.lock();
 					fileDownloadSpeed += block.size();
@@ -289,7 +289,7 @@ void PeerConnection::readData()
 				}
 			}
 
-			buffor = buffor.substr(message_size + sizeof(size_t));
+			buffor = buffor.substr(message_size + sizeof(uint64_t));
 		}
 		else
 		{

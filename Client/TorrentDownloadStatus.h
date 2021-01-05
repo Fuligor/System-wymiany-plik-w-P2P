@@ -18,7 +18,7 @@ struct TorrentDownloadStatus
 	QDateTime startTime;
 	std::wstring fileName;
 	FileSize fileSize;
-	size_t connectionCount;
+	uint64_t connectionCount;
 	enum class State
 	{
 		CONNECTING_TO_TRACKER,

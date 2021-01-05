@@ -37,7 +37,7 @@ TrackerConnection::~TrackerConnection()
 	connectTimer->deleteLater();
 }
 
-void TrackerConnection::setLeft(size_t left)
+void TrackerConnection::setLeft(uint64_t left)
 {
 	mutex->lock();
 	if (left == 0)
@@ -49,14 +49,14 @@ void TrackerConnection::setLeft(size_t left)
 	mutex->unlock();
 }
 
-void TrackerConnection::setDownloaded(size_t downloaded)
+void TrackerConnection::setDownloaded(uint64_t downloaded)
 {
 	mutex->lock();
 	request.setDownloaded((int) downloaded);
 	mutex->unlock();
 }
 
-void TrackerConnection::setUploaded(size_t uploaded)
+void TrackerConnection::setUploaded(uint64_t uploaded)
 {
 	mutex->lock();
 	request.setUploaded((int) uploaded);
@@ -79,7 +79,7 @@ void TrackerConnection::initConnection(const std::shared_ptr <bencode::Dict>& to
 {
 	bencode::String* announce = dynamic_cast <bencode::String*> ((*torrentDict)["announce"].get());
 
-	size_t pos = announce->find(L":");
+	uint64_t pos = announce->find(L":");
 
 	adress = QString::fromStdWString(announce->substr(0, pos));
 	port = (quint16) QString::fromStdWString(announce->substr(pos + 1)).toUInt();

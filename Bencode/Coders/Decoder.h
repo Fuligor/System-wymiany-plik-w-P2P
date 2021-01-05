@@ -17,7 +17,7 @@ namespace bencode
 	class Decoder
 	{
 	private:
-		size_t position;
+		uint64_t position;
 	protected:
 		std::wstring getline(const std::wstring& string, const std::wstring& delim = L"\n");
 		virtual Type decode_type(const char& value);

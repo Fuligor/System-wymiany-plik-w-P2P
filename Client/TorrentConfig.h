@@ -13,7 +13,7 @@ struct TorrentConfig
 	std::string torrentPath;
 	std::string downloadPath;
 
-	TorrentConfig(const size_t& pieces)
+	TorrentConfig(const uint64_t& pieces)
 		:pieceStatus(pieces)
 	{}
 };

@@ -48,8 +48,8 @@ private:
 	std::set <std::string> connectedPeers;
 	BitSet& pieces;
 	BitSet piecesToDownload;
-	size_t pieceSize;
-	size_t maxConn = 30;
+	uint64_t pieceSize;
+	uint64_t maxConn = 30;
 	FileSize downloadSpeed;
 
 	QTimer updateTimer;
@@ -62,16 +62,16 @@ public:
 
 protected:
 	void calculateDownloadedSize();
-	size_t getPieceSize(size_t index);
+	uint64_t getPieceSize(uint64_t index);
 
 public slots:
-	void onPieceDownloaded(size_t index);
-	void onPieceUploaded(size_t index);
+	void onPieceDownloaded(uint64_t index);
+	void onPieceUploaded(uint64_t index);
 	void peerHandshake(std::string peerId, PeerConnection* connection);
 	void closeConnection(std::string peerId, PeerConnection* connection);
 	void downloadMenager(PeerConnection* connection);
 	void speedUpdated(FileSize newDownload, FileSize newUpload, FileSize newFileDownload);
-	void onDownloadCanceled(size_t index);
+	void onDownloadCanceled(uint64_t index);
 
 protected slots:
 	void updatePeerList(bencode::List peers);
@@ -82,8 +82,8 @@ protected slots:
 signals:
 	void peerAdded();
 	void statusUpdated();
-	void pieceDownloaded(size_t index);
-	void pieceUploaded(size_t pieceSize);
+	void pieceDownloaded(uint64_t index);
+	void pieceUploaded(uint64_t pieceSize);
 	void updateStatistics();
 };
 #endif // !TORRENT_DOWNLOADER_H

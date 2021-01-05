@@ -15,7 +15,7 @@ void Torrent::initialize(const std::string& fileHash)
 	TorrentManager::getInstance().append(fileHash, this);
 	connect(downloader, SIGNAL(statusUpdated()), this, SLOT(downloadStatusUpdated()));
 	connect(this, SIGNAL(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)), &TorrentManager::getInstance(), SIGNAL(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)));
-	connect(downloader, SIGNAL(pieceDownloaded(size_t)), this, SLOT(onPieceDownloaded(size_t)));
+	connect(downloader, SIGNAL(pieceDownloaded(uint64_t)), this, SLOT(onPieceDownloaded(uint64_t)));
 
 	downloadStatusUpdated();
 }
@@ -63,7 +63,7 @@ Torrent::Torrent(const std::string& torrendPath, const std::string& downloadPath
 	std::wstring* torrentName = dynamic_cast <bencode::String*> ((*infoDict)["name"].get());
 
 	status.downloadPath = downloadPath;
-	size_t pieceCount = std::dynamic_pointer_cast <bencode::String> ((*infoDict)["pieces"])->size() / 20;
+	uint64_t pieceCount = std::dynamic_pointer_cast <bencode::String> ((*infoDict)["pieces"])->size() / 20;
 
 	status.pieceStatus = BitSet(pieceCount);
 	if (upload)
@@ -108,7 +108,7 @@ void Torrent::deleteFile()
 
 void Torrent::write()
 {
-	const size_t pieceCount = status.pieceStatus.getSize();
+	const uint64_t pieceCount = status.pieceStatus.getSize();
 	QByteArray buf;
 
 	file->seek(0);
@@ -118,22 +118,22 @@ void Torrent::write()
 
 	buf = QString::fromStdString(status.torrentPath).toUtf8();
 
-	const size_t torrentPathLenght = buf.size();
+	const uint64_t torrentPathLenght = buf.size();
 	write(torrentPathLenght);
 	file->write(buf);
 
 	buf = QString::fromStdString(status.downloadPath).toUtf8();
 
-	const size_t downloadPathLenght = buf.size();
+	const uint64_t downloadPathLenght = buf.size();
 	write(downloadPathLenght);
 	file->write(buf);
 
 	file->flush();
 }
 
-void Torrent::write(size_t size)
+void Torrent::write(uint64_t size)
 {
-	for(size_t i = 0; i < sizeof(size); ++i)
+	for(uint64_t i = 0; i < sizeof(size); ++i)
 	{
 		unsigned char temp = size % 256;
 
@@ -145,9 +145,9 @@ void Torrent::write(size_t size)
 
 void Torrent::read()
 {
-	size_t pieceCount;
-	size_t torrentPathLenght;
-	size_t downloadPathLenght;
+	uint64_t pieceCount;
+	uint64_t torrentPathLenght;
+	uint64_t downloadPathLenght;
 	char* buffer;
 	QByteArray buf;
 
@@ -170,25 +170,25 @@ void Torrent::read()
 	status.downloadPath = QString::fromUtf8(buf).toStdString();
 }
 
-void Torrent::read(size_t& size)
+void Torrent::read(uint64_t& size)
 {
 	size = 0;
 
-	for (size_t i = 0; i < sizeof(size); ++i)
+	for (uint64_t i = 0; i < sizeof(size); ++i)
 	{
 		unsigned char temp;
 
 		file->read((char *) &temp, 1);
 
-		size = size + ((size_t) temp <<  (i * 8));
+		size = size + ((uint64_t) temp <<  (i * 8));
 	}
 }
 
-void Torrent::updatePage(const size_t page)
+void Torrent::updatePage(const uint64_t page)
 {
 	mutex.lock();
 
-	if (file->seek(sizeof(size_t) + page))
+	if (file->seek(sizeof(uint64_t) + page))
 	{
 		char data = status.pieceStatus.getData()[page];
 
@@ -204,7 +204,7 @@ const TorrentConfig* Torrent::getStatus() const
 	return &status;
 }
 
-void Torrent::onPieceDownloaded(const size_t& index)
+void Torrent::onPieceDownloaded(const uint64_t& index)
 {
 	updatePage(index / 8);
 }
