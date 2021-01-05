@@ -15,7 +15,7 @@ TrackerConnection::TrackerConnection(const std::shared_ptr <bencode::Dict>& torr
 	connect(connectTimer, SIGNAL(timeout()), this, SLOT(retryConnect()));
 	connect(socket, SIGNAL(readyRead()), this, SLOT(read()));
 	connect(socket, SIGNAL(disconnected()), this, SLOT(reconnect()));
-	connect(this, SIGNAL(statusChanged(const ConnectionStatus &)), parent, SLOT(onTrackerStatusChanged(const ConnectionStatus &)));
+	connect(this, SIGNAL(statusChanged(const ConnectionStatus&)), parent, SLOT(onTrackerStatusChanged(const ConnectionStatus&)));
 	connect(this, SIGNAL(peerListUpdated(bencode::List)), parent, SLOT(updatePeerList(bencode::List)));
 
 	requestTimer->setSingleShot(true);
@@ -33,13 +33,18 @@ TrackerConnection::~TrackerConnection()
 	stopRequest();
 	delete mutex;
 	delete inActiveState;
-	delete requestTimer;
-	delete connectTimer;
+	requestTimer->deleteLater();
+	connectTimer->deleteLater();
 }
 
 void TrackerConnection::setLeft(size_t left)
 {
 	mutex->lock();
+	if (left == 0)
+	{
+		isUpdateSheduled = false;
+	}
+
 	request.setLeft(left);
 	mutex->unlock();
 }
@@ -47,14 +52,14 @@ void TrackerConnection::setLeft(size_t left)
 void TrackerConnection::setDownloaded(size_t downloaded)
 {
 	mutex->lock();
-	request.setDownloaded((int)downloaded);
+	request.setDownloaded((int) downloaded);
 	mutex->unlock();
 }
 
 void TrackerConnection::setUploaded(size_t uploaded)
 {
 	mutex->lock();
-	request.setUploaded((int)uploaded);
+	request.setUploaded((int) uploaded);
 	mutex->unlock();
 }
 
@@ -130,8 +135,11 @@ void TrackerConnection::reconnect()
 
 void TrackerConnection::sendRequest()
 {
-	socket->write(QByteArray::fromStdString(request.getRequest()));
-	socket->flush();
+	if (socket->state() == QAbstractSocket::ConnectedState)
+	{
+		socket->write(QByteArray::fromStdString(request.getRequest()));
+		socket->flush();
+	}
 
 	setState(ConnectionStatus::AWAITING);
 }
@@ -172,9 +180,13 @@ void TrackerConnection::stopRequest()
 		requestTimer->stop();
 		sendRequest();
 		socket->disconnectFromHost();
-		if(!socket->waitForDisconnected(5000))
+
+		if (socket->state() == QAbstractSocket::ConnectedState)
 		{
-			socket->abort();
+			if (!socket->waitForDisconnected(5000))
+			{
+				socket->abort();
+			}
 		}
 
 		setState(ConnectionStatus::CLOSED);
@@ -269,7 +281,7 @@ void TrackerConnection::decodeResponse()
 			return;
 		}
 
-		if((*response)["failture reason"])
+		if ((*response)["failture reason"])
 		{
 			std::cerr << (*response)["failture reason"]->code() << std::endl;
 

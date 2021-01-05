@@ -40,7 +40,6 @@ TorrentDownloader::TorrentDownloader(const std::shared_ptr <bencode::Dict>& torr
 
 TorrentDownloader::~TorrentDownloader()
 {
-	delete tracker;
 }
 
 const TorrentDownloadStatus& TorrentDownloader::getDownloadStatus() const
@@ -51,7 +50,7 @@ const TorrentDownloadStatus& TorrentDownloader::getDownloadStatus() const
 void TorrentDownloader::createConnection()
 {
 	QString addres = QString::fromStdString(availablePeers.begin()->address);
-	QTcpSocket* socket = new QTcpSocket(this);
+	QTcpSocket* socket = new QTcpSocket();
 
 	//qDebug() << addres << " " << availablePeers.begin()->port;
 
@@ -155,7 +154,7 @@ void TorrentDownloader::peerHandshake(std::string peerId, PeerConnection* connec
 	}
 	else
 	{
-		delete connection;
+		connection->deleteLater();
 		downloadStatus.connectionCount--;
 
 		if (pieces.getSize() > pieces.getCount())
@@ -172,7 +171,7 @@ void TorrentDownloader::peerHandshake(std::string peerId, PeerConnection* connec
 void TorrentDownloader::closeConnection(std::string peerId, PeerConnection* connection)
 {
 	connectedPeers.erase(peerId);
-	delete connection;
+	connection->deleteLater();
 	downloadStatus.connectionCount--;
 	if (pieces.getSize() > pieces.getCount())
 	{

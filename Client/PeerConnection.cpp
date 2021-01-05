@@ -13,8 +13,9 @@ PeerConnection::PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File
 {
 	connectTimer.setSingleShot(true);
 
+	socket->setParent(this);
+
 	connect(socket, SIGNAL(readyRead()), this, SLOT(readData()));
-	connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onDisconnection()));
 	connect(&connectTimer, SIGNAL(timeout()), this, SLOT(onDisconnection()));
 	connect(this, SIGNAL(pieceDownloaded(size_t)), parent, SLOT(onPieceDownloaded(size_t)));
 	connect(parent, SIGNAL(pieceDownloaded(size_t)), this, SLOT(have(size_t)));
@@ -35,11 +36,16 @@ PeerConnection::PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File
 
 PeerConnection::~PeerConnection()
 {
-	socket->disconnectFromHost();
+	blockSignals(true);
 
-	if(!socket->waitForDisconnected(5000))
+	if (socket->state() == QAbstractSocket::ConnectedState)
 	{
-		socket->abort();
+		socket->disconnectFromHost();
+
+		if (!socket->waitForDisconnected(5000))
+		{
+			socket->abort();
+		}
 	}
 }
 
@@ -77,9 +83,9 @@ size_t PeerConnection::read(const std::string& size)
 
 	for (size_t i = 0; i < sizeof(size_t); ++i)
 	{
-		unsigned char temp = (unsigned char)size[i];
+		unsigned char temp = (unsigned char) size[i];
 
-		result = result + ((size_t)temp << (i * 8));
+		result = result + ((size_t) temp << (i * 8));
 	}
 	return result;
 }
@@ -117,7 +123,7 @@ void PeerConnection::have(size_t index)
 
 	socket->write(message.data(), message.size());
 
-	if(havePieces.getCount() == havePieces.getSize() && myPieces.getCount() == myPieces.getSize())
+	if (havePieces.getCount() == havePieces.getSize() && myPieces.getCount() == myPieces.getSize())
 	{
 		socket->disconnectFromHost();
 	}
@@ -132,11 +138,11 @@ void PeerConnection::bitfield()
 }
 
 void PeerConnection::request(size_t index, size_t begin)
-{	
+{
 	download_index = index;
 	std::string idx = write(index);
 	std::string beg = write(begin);
-	std::string len = write(std::min(toDownload-fragBuff.size(), downloadLength));
+	std::string len = write(std::min(toDownload - fragBuff.size(), downloadLength));
 
 	std::string message = "6" + idx + beg + len;
 	message = write(message.size()) + message;
@@ -145,7 +151,7 @@ void PeerConnection::request(size_t index, size_t begin)
 }
 
 void PeerConnection::piece(size_t index, size_t begin, std::string block)
-{	
+{
 	std::string idx = write(index);
 	std::string beg = write(begin);
 
@@ -174,7 +180,7 @@ void PeerConnection::readData()
 		int message_size = read(buffor.substr(0, sizeof(size_t)));
 		if (message_size + sizeof(size_t) <= buffor.size())
 		{
-			std::string message = buffor.substr(sizeof(size_t));
+			std::string message = buffor.substr(sizeof(size_t), message_size);
 			/*if (message[0] == '0')
 			{
 				peerchoked = true;
@@ -201,7 +207,7 @@ void PeerConnection::readData()
 			}
 			else if (message[0] == '5')
 			{
-				havePieces.setData((unsigned char *)message.substr(1).c_str());
+				havePieces.setData((unsigned char*) message.substr(1).c_str());
 				if (!isDownloading)
 				{
 					emit downloadRequest(this);
@@ -212,8 +218,8 @@ void PeerConnection::readData()
 				size_t index = read(message.substr(1, sizeof(size_t)));
 				int begin = read(message.substr(1 + sizeof(size_t), sizeof(size_t)));
 				int length = read(message.substr(1 + 2 * sizeof(size_t), sizeof(size_t)));
-				piece(index, begin, (*mFile)[(const unsigned int)index]->getData().mid((int)begin, (int)length).toStdString());
-				
+				piece(index, begin, (*mFile)[(const unsigned int) index]->getData().mid((int) begin, (int) length).toStdString());
+
 			}
 			else if (message[0] == '7')
 			{
@@ -234,7 +240,7 @@ void PeerConnection::readData()
 
 						if (hash == expectedHash)
 						{
-							mFile->setFrag(fragBuff, (int)index);
+							mFile->setFrag(fragBuff, (int) index);
 							fragBuff = "";
 							isDownloading = false;
 							emit pieceDownloaded(index);
@@ -269,13 +275,22 @@ void PeerConnection::readData()
 			}
 			buffor = buffor.substr(message_size + sizeof(size_t));
 		}
+		else
+		{
+			break;
+		}
 	}
 
 }
 
 void PeerConnection::onDisconnection()
 {
-	socket->abort();
+	if (socket->state() == QAbstractSocket::ConnectedState)
+	{
+		socket->abort();
+
+		socket->deleteLater();
+	}
 
 	emit peerdisconnect(peerId, this);
 }

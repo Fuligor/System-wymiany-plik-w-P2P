@@ -76,7 +76,7 @@ Torrent::Torrent(const std::string& torrendPath, const std::string& downloadPath
 
 Torrent::~Torrent()
 {
-	delete file;
+	file->deleteLater();
 }
 
 void Torrent::write()

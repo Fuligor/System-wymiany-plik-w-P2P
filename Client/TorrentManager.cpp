@@ -59,7 +59,7 @@ void TorrentManager::clear()
 {
 	for(auto i: fileList)
 	{
-		delete i.second;
+		i.second->deleteLater();
 	}
 
 	fileList.clear();
