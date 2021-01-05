@@ -16,8 +16,9 @@ class TorrentFile
     public:
         TorrentFile(const std::string fname, const std::string Utracker, size_t pLength);
         ~TorrentFile();
-        void createFile();
         QString getFileName();
+public slots:
+    void createFile();
 signals:
     void torrentCreated(TorrentFile*);
 };

@@ -31,7 +31,6 @@ Client::Client()
 
         QDir().mkpath(config.absolutePath());
     }
-    thread.start();
 }
 
 const std::string Client::createId()
@@ -72,19 +71,38 @@ void Client::shareFile(const std::string& fileName, const std::string& trackerAd
 {
     TorrentFile* file = new TorrentFile(fileName, trackerAddres, pieceSize);
     connect(file, SIGNAL(torrentCreated(TorrentFile*)), this, SLOT(onFileCreated(TorrentFile*)));
+    connect(this, SIGNAL(onFileShare()), file, SLOT(createFile()));
     file->moveToThread(&thread);
-    file->createFile();
+
+    thread.start();
+
+    emit onFileShare();
 }
 
 void Client::downloadFile(const std::string& torrentPath, const std::string& downloadPath)
 {
-    new Torrent(torrentPath, downloadPath);
+    try {
+        new Torrent(torrentPath, downloadPath);
+    }
+    catch (bencode::Exception::utf_encoding& e)
+    {
+        emit wrongFile("Wyst¹pi³ problem z plikiem " + torrentPath + " i zostanie usuniêty plik konfiguracyjny. \n Kod b³êdu: " + e.what());
+    }
+    catch (bencode::Exception::end_of_file& e)
+    {
+        emit wrongFile("Wyst¹pi³ nieoczekiwany koniec pliku " + torrentPath + " i zostanie usuniêty plik konfiguracyjny. \n Kod b³êdu: " + e.what());
+    }
+    catch (std::exception& e)
+    {
+        emit wrongFile("Wyst¹pi³ problem z plikiem " + torrentPath + " i zostanie on usuniêty. \n Kod b³êdu: " + e.what());
+    }
 }
 
 void Client::onFileCreated(TorrentFile* file)
 {
     new Torrent(file->getFileName().toStdString() + ".torrent", file->getFileName().toStdString(), true);
     file->deleteLater();
+    thread.terminate();
     emit fileShared();
 }
 

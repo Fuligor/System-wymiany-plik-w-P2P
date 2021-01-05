@@ -70,6 +70,5 @@ target_include_directories(Client
 install(TARGETS Client DESTINATION bin)
 
 target_link_libraries(Client Bencode)
-target_link_libraries(Client TorrentFile)
 target_link_libraries(Client Qt5::Widgets)
 target_link_libraries(Client Qt5::Network)

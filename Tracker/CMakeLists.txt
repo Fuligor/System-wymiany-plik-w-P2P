@@ -34,4 +34,3 @@ target_include_directories(Tracker
 )
 target_link_libraries(Tracker PRIVATE Threads::Threads)
 target_link_libraries(Tracker PRIVATE Bencode)
-target_link_libraries(Tracker PRIVATE TorrentFile)

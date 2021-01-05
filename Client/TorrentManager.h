@@ -25,8 +25,12 @@ public:
 
 	Torrent* const operator[](const std::string& infoHash);
 	void append(const std::string& infoHash, Torrent* torrent);
+	void remove(const std::string& infoHash);
+protected:
+	void removeFile(const std::string& infoHash);
 signals:
 	void torrentStatusUpdated(const std::string, const TorrentDownloadStatus*);
+	void wrongConfigFile(std::string);
 public slots:
 	void clear();
 };

@@ -28,8 +28,25 @@ Torrent::Torrent(const std::string& fileHash)
 	file->open(QIODevice::ReadWrite);
 
 	read();
-	torrentReader reader(status.torrentPath);
-	torrentDict = reader.getDict();
+	try
+	{
+		torrentReader reader(status.torrentPath);
+		torrentDict = reader.getDict();
+	}
+	catch (bencode::Exception::utf_encoding& e)
+	{
+		deleteFile();
+		deleteLater();
+
+		throw std::domain_error("Wyst¹pi³ problem z plikiem .torrent o hashu " + fileHash + " i zostanie usuniêty plik konfiguracyjny. \n Kod b³êdu: " + e.what());
+	}
+	catch (bencode::Exception::end_of_file& e)
+	{
+		deleteFile();
+		deleteLater();
+
+		throw std::domain_error("Wyst¹pi³ nieoczekiwany koniec pliku .torrent o hashu " + fileHash + " i zostanie usuniêty plik konfiguracyjny. \n Kod b³êdu: " + e.what());
+	}
 
 	initialize(fileHash);
 }
@@ -76,7 +93,17 @@ Torrent::Torrent(const std::string& torrendPath, const std::string& downloadPath
 
 Torrent::~Torrent()
 {
+	file->close();
 	file->deleteLater();
+}
+
+void Torrent::deleteFile()
+{
+	if (file != nullptr)
+	{
+		file->close();
+		file->remove();
+	}
 }
 
 void Torrent::write()

@@ -9,21 +9,27 @@
 
 PeerConnection::PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File* mFile, BitSet& myPieces, TorrentDownloader* parent)
 	:QObject(parent), mFile(mFile), socket(tcpSocket), infoHash(infoHash), myPieces(myPieces),
-	havePieces(mFile->getFragCount()), fragBuff(""), toDownload(0), isDownloading(false), download_index(0)
+	havePieces(mFile->getFragCount()), fragBuff(""), toDownload(0), isDownloading(false), download_index(0), retransmisions(0)
 {
 	connectTimer.setSingleShot(true);
 
 	socket->setParent(this);
-
+	socket->setSocketOption(QAbstractSocket::SocketOption::LowDelayOption, true);
+	
 	connect(socket, SIGNAL(readyRead()), this, SLOT(readData()));
 	connect(&connectTimer, SIGNAL(timeout()), this, SLOT(onDisconnection()));
 	connect(this, SIGNAL(pieceDownloaded(size_t)), parent, SLOT(onPieceDownloaded(size_t)));
 	connect(parent, SIGNAL(pieceDownloaded(size_t)), this, SLOT(have(size_t)));
 	connect(this, SIGNAL(initialize(std::string, PeerConnection*)), parent, SLOT(peerHandshake(std::string, PeerConnection*)));
 	connect(socket, SIGNAL(disconnected()), this, SLOT(onDisconnection()));
+	connect(socket, SIGNAL(error(QAbstractSocket::SocketError)), this, SLOT(onDisconnection()));
 	connect(this, SIGNAL(peerdisconnect(std::string, PeerConnection*)), parent, SLOT(closeConnection(std::string, PeerConnection*)));
 	connect(this, SIGNAL(downloadRequest(PeerConnection*)), parent, SLOT(downloadMenager(PeerConnection*)));
 	connect(this, SIGNAL(uploaded(size_t)), parent, SLOT(onPieceUploaded(size_t)));
+	connect(parent, SIGNAL(updateStatistics()), this, SLOT(updateStatistics()));
+	connect(this, SIGNAL(downloadCanceled(size_t)), parent, SLOT(onDownloadCanceled(size_t)));
+	connect(this, SIGNAL(speedUpdated(FileSize, FileSize, FileSize)), 
+			parent, SLOT(speedUpdated(FileSize, FileSize, FileSize)));
 
 	connectTimer.start(5000);
 
@@ -36,12 +42,17 @@ PeerConnection::PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File
 
 PeerConnection::~PeerConnection()
 {
-	blockSignals(true);
+	updateStatistics();
+
+	if(isDownloading)
+	{
+		downloadCanceled(download_index);
+	}
+
+	socket->disconnectFromHost();
 
 	if (socket->state() == QAbstractSocket::ConnectedState)
 	{
-		socket->disconnectFromHost();
-
 		if (!socket->waitForDisconnected(5000))
 		{
 			socket->abort();
@@ -54,6 +65,7 @@ void PeerConnection::downloadPiece(size_t index, size_t pieceSize, std::string f
 	isDownloading = true;
 	toDownload = pieceSize;
 	expectedHash = fragHash;
+	retransmisions = 0;
 	request(index, 0);
 }
 const BitSet& PeerConnection::getPieces()
@@ -77,6 +89,7 @@ std::string PeerConnection::write(size_t size)
 	}
 	return result;
 }
+
 size_t PeerConnection::read(const std::string& size)
 {
 	size_t result = 0;
@@ -90,51 +103,50 @@ size_t PeerConnection::read(const std::string& size)
 	return result;
 }
 
-//void PeerConnection::choke()
-//{
-//	std::string message = "00010";
-//	socket->write(message.data(), message.size());
-//}
-//
-//void PeerConnection::unchoke()
-//{
-//	std::string message = "00011";
-//	socket->write(message.data(), message.size());
-//}
-//
-//void PeerConnection::interested()
-//{
-//	std::string message = "00012";
-//	socket->write(message.data(), message.size());
-//}
-//
-//void PeerConnection::not_interested()
-//{
-//	std::string message = "00013";
-//	socket->write(message.data(), message.size());
-//}
+void PeerConnection::handshake()
+{
+	std::string message = "0" + infoHash + Client::getInstance()->getId();
+	message = write(message.size()) + message;
+	socket->write(message.data(), message.size());
+	socket->flush();
+
+	statisticsMutex.lock();
+	uploadedSinceLastUpdate += message.size();
+	statisticsMutex.unlock();
+}
+
+void PeerConnection::bitfield()
+{
+	std::string message = "1" + std::string(myPieces.getData(), BitSet::getPageCount(myPieces.getSize()));
+	message = write(message.size()) + message;
+
+	socket->write(message.data(), message.size());
+	socket->flush();
+
+	statisticsMutex.lock();
+	uploadedSinceLastUpdate += message.size();
+	statisticsMutex.unlock();
+}
+
 
 void PeerConnection::have(size_t index)
 {
 	std::string idx = write(index);
 
-	std::string message = "4" + idx;
+	std::string message = "2" + idx;
 	message = write(message.size()) + message;
 
 	socket->write(message.data(), message.size());
+	socket->flush();
+
+	statisticsMutex.lock();
+	uploadedSinceLastUpdate += message.size();
+	statisticsMutex.unlock();
 
 	if (havePieces.getCount() == havePieces.getSize() && myPieces.getCount() == myPieces.getSize())
 	{
 		socket->disconnectFromHost();
 	}
-}
-
-void PeerConnection::bitfield()
-{
-	std::string message = "5" + std::string(myPieces.getData(), BitSet::getPageCount(myPieces.getSize()));
-	message = write(message.size()) + message;
-
-	socket->write(message.data(), message.size());
 }
 
 void PeerConnection::request(size_t index, size_t begin)
@@ -144,10 +156,14 @@ void PeerConnection::request(size_t index, size_t begin)
 	std::string beg = write(begin);
 	std::string len = write(std::min(toDownload - fragBuff.size(), downloadLength));
 
-	std::string message = "6" + idx + beg + len;
+	std::string message = "3" + idx + beg + len;
 	message = write(message.size()) + message;
 	socket->write(message.data(), message.size());
 	socket->flush();
+
+	statisticsMutex.lock();
+	uploadedSinceLastUpdate += message.size();
+	statisticsMutex.unlock();
 }
 
 void PeerConnection::piece(size_t index, size_t begin, std::string block)
@@ -155,25 +171,28 @@ void PeerConnection::piece(size_t index, size_t begin, std::string block)
 	std::string idx = write(index);
 	std::string beg = write(begin);
 
-	std::string message = "7" + idx + beg + block;
+	std::string message = "4" + idx + beg + block;
 	message = write(message.size()) + message;
 	socket->write(message.data(), message.size());
+	socket->flush();
+
+	statisticsMutex.lock();
+	uploadedSinceLastUpdate += message.size();
+	statisticsMutex.unlock();
 
 	emit uploaded(block.size());
 }
 
-void PeerConnection::handshake()
-{
-	std::string message = "9" + infoHash + Client::getInstance()->getId();
-	message = write(message.size()) + message;
-	socket->write(message.data(), message.size());
-}
-
 void PeerConnection::readData()
 {
+	size_t readedBytes = buffor.size();
 	buffor += socket->readAll().toStdString();
+	
+	readedBytes = buffor.size() - readedBytes;
 
-	//qDebug() << QString::fromStdString(buffor);
+	statisticsMutex.lock();
+	downloadedSinceLastUpdate += readedBytes;
+	statisticsMutex.unlock();
 
 	while (buffor.size() >= sizeof(size_t))
 	{
@@ -181,84 +200,8 @@ void PeerConnection::readData()
 		if (message_size + sizeof(size_t) <= buffor.size())
 		{
 			std::string message = buffor.substr(sizeof(size_t), message_size);
-			/*if (message[0] == '0')
-			{
-				peerchoked = true;
-			}
-			else if (message[0] == '1')
-			{
-				peerchoked = false;
-			}
-			else if (message[0] == '2')
-			{
-				peerinterested = true;
-			}
-			else if (message[0] == '3')
-			{
-				peerinterested = false;
-			}*/
-			if (message[0] == '4')
-			{
-				havePieces.set(read(message.substr(1)));
-				if (!isDownloading)
-				{
-					emit downloadRequest(this);
-				}
-			}
-			else if (message[0] == '5')
-			{
-				havePieces.setData((unsigned char*) message.substr(1).c_str());
-				if (!isDownloading)
-				{
-					emit downloadRequest(this);
-				}
-			}
-			else if (message[0] == '6')
-			{
-				size_t index = read(message.substr(1, sizeof(size_t)));
-				int begin = read(message.substr(1 + sizeof(size_t), sizeof(size_t)));
-				int length = read(message.substr(1 + 2 * sizeof(size_t), sizeof(size_t)));
-				piece(index, begin, (*mFile)[(const unsigned int) index]->getData().mid((int) begin, (int) length).toStdString());
-
-			}
-			else if (message[0] == '7')
-			{
-				size_t index = read(message.substr(1, sizeof(size_t)));
-				//int begin = read(message.substr(1 + sizeof(size_t), sizeof(size_t)));
-
-				if (index != download_index)
-				{
-					request(download_index, fragBuff.size());
-				}
-				else
-				{
-					std::string block = message.substr(1 + 2 * sizeof(size_t));
-					fragBuff += block;
-					if (fragBuff.size() == toDownload)
-					{
-						std::string hash = QCryptographicHash::hash(QByteArray::fromStdString(fragBuff), QCryptographicHash::Sha1).toStdString();
-
-						if (hash == expectedHash)
-						{
-							mFile->setFrag(fragBuff, (int) index);
-							fragBuff = "";
-							isDownloading = false;
-							emit pieceDownloaded(index);
-							emit downloadRequest(this);
-						}
-						else
-						{
-							fragBuff = "";
-							request(index, fragBuff.size());
-						}
-					}
-					else
-					{
-						request(index, fragBuff.size());
-					}
-				}
-			}
-			else if (message[0] == '9')
+			
+			if (message[0] == '0')
 			{
 				connectTimer.stop();
 
@@ -273,6 +216,79 @@ void PeerConnection::readData()
 					emit initialize(peerId, this);
 				}
 			}
+			else if (message[0] == '1')
+			{
+				havePieces.setData((unsigned char*) message.substr(1).c_str());
+				if (!isDownloading)
+				{
+					emit downloadRequest(this);
+				}
+			}
+			else if (message[0] == '2')
+			{
+				havePieces.set(read(message.substr(1)));
+				if (!isDownloading)
+				{
+					emit downloadRequest(this);
+				}
+			}
+			else if (message[0] == '3')
+			{
+				size_t index = read(message.substr(1, sizeof(size_t)));
+				int begin = read(message.substr(1 + sizeof(size_t), sizeof(size_t)));
+				int length = read(message.substr(1 + 2 * sizeof(size_t), sizeof(size_t)));
+				piece(index, begin, (*mFile)[(const unsigned int) index]->getData().mid((int) begin, (int) length).toStdString());
+			}
+			else if (message[0] == '4')
+			{
+				size_t index = read(message.substr(1, sizeof(size_t)));
+				//size_t begin = read(message.substr(1 + sizeof(size_t), sizeof(size_t)));
+
+				if (index != download_index)
+				{
+					request(download_index, fragBuff.size());
+				}
+				else
+				{
+					std::string block = message.substr(1 + 2 * sizeof(size_t));
+
+					statisticsMutex.lock();
+					fileDownloadSpeed += block.size();
+					statisticsMutex.unlock();
+
+					fragBuff += block;
+					if (fragBuff.size() == toDownload)
+					{
+						std::string hash = QCryptographicHash::hash(QByteArray::fromStdString(fragBuff), QCryptographicHash::Sha1).toStdString();
+
+						if (hash == expectedHash)
+						{
+							mFile->setFrag(fragBuff, (int) index);
+							fragBuff = "";
+							isDownloading = false;
+							emit pieceDownloaded(index);
+							emit downloadRequest(this);
+						}
+						else if(retransmisions++ > 3)
+						{
+							fragBuff = "";
+							isDownloading = false;
+							havePieces.reset(download_index);
+							emit downloadCanceled(index);
+						}
+						else
+						{
+							fragBuff = "";
+							request(index, fragBuff.size());
+						}
+					}
+					else
+					{
+						request(index, fragBuff.size());
+					}
+				}
+			}
+
 			buffor = buffor.substr(message_size + sizeof(size_t));
 		}
 		else
@@ -292,5 +308,23 @@ void PeerConnection::onDisconnection()
 		socket->deleteLater();
 	}
 
+	if(isDownloading)
+	{
+		emit downloadCanceled(download_index);
+	}
+
 	emit peerdisconnect(peerId, this);
+}
+
+void PeerConnection::updateStatistics()
+{
+	statisticsMutex.lock();
+
+	emit speedUpdated(downloadedSinceLastUpdate, uploadedSinceLastUpdate, fileDownloadSpeed);
+
+	downloadedSinceLastUpdate = 0;
+	uploadedSinceLastUpdate = 0;
+	fileDownloadSpeed = 0;
+
+	statisticsMutex.unlock();
 }

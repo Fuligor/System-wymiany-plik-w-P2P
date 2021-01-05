@@ -5,6 +5,8 @@
 #include <list>
 #include <set>
 
+#include <QTimer>
+
 #include "Bencode.h"
 
 #include "ConnectionStatus.h"
@@ -35,6 +37,7 @@ class TorrentDownloader:
 private:
 	File* mFile;
 	QMutex mutex;
+	QMutex statusMutex;
 	QWaitCondition condVar;
 	QTcpServer tcpServer;
 	TrackerConnection* tracker;
@@ -47,6 +50,9 @@ private:
 	BitSet piecesToDownload;
 	size_t pieceSize;
 	size_t maxConn = 30;
+	FileSize downloadSpeed;
+
+	QTimer updateTimer;
 public:
 	TorrentDownloader(const std::shared_ptr <bencode::Dict>& torrentDict, TorrentConfig& status, Torrent* parent);
 	~TorrentDownloader();
@@ -64,16 +70,20 @@ public slots:
 	void peerHandshake(std::string peerId, PeerConnection* connection);
 	void closeConnection(std::string peerId, PeerConnection* connection);
 	void downloadMenager(PeerConnection* connection);
+	void speedUpdated(FileSize newDownload, FileSize newUpload, FileSize newFileDownload);
+	void onDownloadCanceled(size_t index);
 
 protected slots:
 	void updatePeerList(bencode::List peers);
 	void onTrackerStatusChanged(const ConnectionStatus& status);
 	void onNewConnection();
+	void onUpdateTimeout();
 	
 signals:
 	void peerAdded();
 	void statusUpdated();
 	void pieceDownloaded(size_t index);
 	void pieceUploaded(size_t pieceSize);
+	void updateStatistics();
 };
 #endif // !TORRENT_DOWNLOADER_H

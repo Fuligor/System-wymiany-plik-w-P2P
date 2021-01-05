@@ -179,6 +179,7 @@ void TrackerConnection::stopRequest()
 		request.setEvent("stopped");
 		requestTimer->stop();
 		sendRequest();
+
 		socket->disconnectFromHost();
 
 		if (socket->state() == QAbstractSocket::ConnectedState)
@@ -318,7 +319,7 @@ void TrackerConnection::decodeResponse()
 	}
 	catch (std::exception& e)
 	{
-
+		std::cerr << e.what() << std::endl;
 	}
 
 	return;

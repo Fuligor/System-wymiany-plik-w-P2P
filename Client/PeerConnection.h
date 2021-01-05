@@ -7,6 +7,7 @@
 
 #include <QString>
 #include <QTimer>
+#include <QMutex>
 
 #include "Types.h"
 #include "Bencode.h"
@@ -14,6 +15,7 @@
 #include "Peer.h"
 #include "File.h"
 #include "FileFrag.h"
+#include "FileSize.h"
 #include "torrentReader.h"
 #include "BitSet.h"
 class QTcpSocket;
@@ -28,6 +30,7 @@ private:
     File* mFile;
     QTcpSocket* socket;
     QTimer connectTimer;
+    QMutex statisticsMutex;
 
     std::string peerId;
     std::string infoHash;
@@ -40,6 +43,11 @@ private:
     bool isDownloading;
     std::string expectedHash;
     size_t download_index;
+    size_t retransmisions;
+
+    FileSize downloadedSinceLastUpdate;
+    FileSize uploadedSinceLastUpdate;
+    FileSize fileDownloadSpeed;
 public:
     PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File* mFile, BitSet& myPieces, TorrentDownloader* parent);
     ~PeerConnection();
@@ -58,11 +66,14 @@ protected slots:
     void piece(size_t index, size_t begin, std::string block);
     void readData();
     void onDisconnection();
+    void updateStatistics();
 signals:
     void downloadRequest(PeerConnection* conn);
     void pieceDownloaded(size_t index);
     void initialize(std::string idpeer, PeerConnection* conn);
     void peerdisconnect(std::string peerid, PeerConnection* conn);
     void uploaded(size_t uploadSize);
+    void speedUpdated(FileSize, FileSize, FileSize);
+    void downloadCanceled(size_t index);
 };
 #endif

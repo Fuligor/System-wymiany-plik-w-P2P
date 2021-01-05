@@ -31,6 +31,8 @@ public:
 	Torrent(const std::string& fileHash);
 	Torrent(const std::string& torrendPath, const std::string& downloadPath, bool upload = false);
 	~Torrent();
+
+	void deleteFile();
 protected:
 	void write();
 	void write(size_t size);

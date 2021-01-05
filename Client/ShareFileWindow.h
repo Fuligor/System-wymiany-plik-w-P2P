@@ -21,11 +21,11 @@ public:
 
 public slots:
 	void init();
-   // void getFiles();
     void fileSelected();
 	void shareFile();
 	void check();
 	void onFileShared();
+	void showWarning(std::string info);
 private:
 	Ui::ShareFileWindow ui;
 signals:

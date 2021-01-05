@@ -38,6 +38,7 @@ ShareFileWindow::ShareFileWindow(QWidget* prevWindow, QWidget *parent)
     ui.setupUi(this);
     hide();
     fileDialog->setModal(true);
+    ui.trackerURL->setDuplicatesEnabled(false);
 
     connect(ui.Cancel, SIGNAL(clicked()), this, SLOT(hide()));
     connect(ui.listFiles, SIGNAL(clicked()), fileDialog, SLOT(show()));
@@ -47,15 +48,15 @@ ShareFileWindow::ShareFileWindow(QWidget* prevWindow, QWidget *parent)
     connect(this, SIGNAL(checked()), this, SLOT(hide()));
 
     QFile file("config/trackerSaves.conf");
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) { 
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
         QTextStream in(&file);
-        while (!in.atEnd()) 
-        { 
-            ui.trackerURL->addItem(in.readLine()); 
+        while (!in.atEnd())
+        {
+            ui.trackerURL->addItem(in.readLine());
         }
         file.close();
     }
-   
 }
 
 ShareFileWindow::~ShareFileWindow()
@@ -66,11 +67,6 @@ void ShareFileWindow::init()
 {
     ui.fileName->setText("");
 }
-
-//void ShareFileWindow::getFiles()
-//{
-//    fileDialog->show();
-//}
 
 void ShareFileWindow::fileSelected()
 {
@@ -85,27 +81,41 @@ void ShareFileWindow::shareFile()
     FileSize unitSize = FileSize(ui.pieceSize->value(), getUnit(unit));
 
     QString trackerURL = ui.trackerURL->currentText();
-    ui.trackerURL->addItem(trackerURL);
+    bool duplicated = false;
 
-    QFile file("config/trackerSaves.conf");
-    if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream out(&file);
-        
-        for (int i = 0; i < ui.trackerURL->count(); i++)
+    for (int i = 0; i < ui.trackerURL->count(); i++)
+    {
+        if(ui.trackerURL->itemText(i) == trackerURL)
         {
-            out << ui.trackerURL->itemText(i) + "\n";
+            duplicated = true;
         }
-        file.close();
+    }
+    
+    if (!duplicated)
+    {
+        ui.trackerURL->addItem(trackerURL);
+
+        QFile file("config/trackerSaves.conf");
+        if (file.open(QIODevice::WriteOnly | QIODevice::Text | QIODevice::Truncate))
+        {
+            QTextStream out(&file);
+
+            for (int i = 0; i < ui.trackerURL->count(); i++)
+            {
+                out << ui.trackerURL->itemText(i) + "\n";
+            }
+            file.close();
+        }
     }
    
     Client::getInstance()->shareFile(ui.fileName->text().toStdString(), trackerURL.toStdString(), unitSize.to_int());
     prog = new QProgressDialog(this);
     prog->setAutoClose(true);
     prog->setAutoReset(false);
-    //prog.setModal(true);
     bar = new QProgressBar();
     bar->setMaximum(0);
     bar->setMinimum(0);
+    prog->setLabelText("Udostępnianie, proszę czekać...");
     prog->setBar(bar);
     prog->setCancelButton(NULL);
     prog->exec();
@@ -117,15 +127,15 @@ void ShareFileWindow::check()
     if (ui.fileName->text().isEmpty() || ui.trackerURL->currentText().isEmpty())
     {
         QMessageBox msgBox;
-        msgBox.setText(QString::fromStdWString(L"Przynajmniej jedno pole jest puste."));
-        msgBox.setInformativeText(QString::fromStdWString(L"Uzupełnij puste pola, by kontynuować."));
+        msgBox.setText("Przynajmniej jedno pole jest puste.");
+        msgBox.setInformativeText("Uzupełnij puste pola, by kontynuować.");
         msgBox.exec();
     }
     else if (!ui.trackerURL->currentText().contains(re))
     {
         QMessageBox msgBox;
-        msgBox.setText(QString::fromStdWString(L"Podano błędny adres trackera."));
-        msgBox.setInformativeText(QString::fromStdWString(L"Popraw adres trackera, by kontynuować."));
+        msgBox.setText("Podano błędny adres trackera.");
+        msgBox.setInformativeText("Popraw adres trackera, by kontynuować.");
         msgBox.exec();
     }
     else
@@ -139,4 +149,11 @@ void ShareFileWindow::onFileShared()
 {
     prog->reset();
     disconnect(Client::getInstance(), SIGNAL(fileShared()), this, SLOT(onFileShared()));
+}
+
+void ShareFileWindow::showWarning(std::string info)
+{
+    QMessageBox msgBox;
+    msgBox.setText(QString::fromStdString(info));
+    msgBox.exec();
 }

@@ -25,7 +25,6 @@ namespace bencode
 		Int operator + (const size_t& b) const;
 		Int operator + (const Int& b) const;
 
-		Int operator - () const;
 		Int operator - (const size_t& b) const;
 		Int operator - (const Int& b) const;
 	};

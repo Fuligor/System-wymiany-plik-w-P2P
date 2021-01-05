@@ -30,6 +30,8 @@ public slots:
 signals:
     void torrentAdded();
     void fileShared();
+    void onFileShare();
+    void wrongFile(std::string);
 };
 
 #endif // CLIENT_H

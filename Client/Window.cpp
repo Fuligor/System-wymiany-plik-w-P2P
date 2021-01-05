@@ -30,6 +30,7 @@ Window::Window(QWidget *parent)
     connect(ui.DownloadNewFIles, SIGNAL(clicked()), downloadFileWindow, SLOT(init()));
     connect(ui.DownloadNewFIles, SIGNAL(clicked()), downloadFileWindow, SLOT(show()));
     connect(ui.DownloadedFiles, SIGNAL(currentCellChanged(int, int, int, int)), this, SLOT(updateBottomBar(int, int, int, int)));
+    connect(ui.DeleteConfig, SIGNAL(clicked()), this, SLOT(deleteFile()));
     connect(&TorrentManager::getInstance(), SIGNAL(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)), this, SLOT(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)));
     connect(&TorrentManager::getInstance(), SIGNAL(wrongConfigFile(std::string)), this, SLOT(showWarning(std::string)));
     TorrentManager::getInstance().updateDownloadList();
@@ -42,15 +43,16 @@ void Window::torrentStatusUpdated(const std::string torrentId, const TorrentDown
 
     if(idToRow.find(torrentId) == idToRow.end())
     {
-        rowIndex = ui.DownloadedFiles->rowCount();
+        rowIndex = rowStatus.size();
         ui.DownloadedFiles->insertRow(rowIndex);
+        rowStatus.push_back(status);
+
         idToRow[torrentId] = rowIndex;
-        rowToStatus[rowIndex] = status;
     }
     else
     {
         rowIndex = idToRow.at(torrentId);
-        rowToStatus[rowIndex] = status;
+        rowStatus[rowIndex] = status;
     }
 
     if(ui.DownloadedFiles->currentRow() == rowIndex)
@@ -85,7 +87,12 @@ void Window::torrentStatusUpdated(const std::string torrentId, const TorrentDown
 
 void Window::updateBottomBar(int currentRow, int currentColumn, int previousRow, int previousColumn)
 {
-    const TorrentDownloadStatus* status = rowToStatus[currentRow];
+    if(currentRow > rowStatus.size())
+    {
+        return;
+    }
+
+    const TorrentDownloadStatus* status = rowStatus[currentRow];
 
     ui.progressBar->setValue((int)(100 * status->downloadedSinceStart.to_int() / status->fileSize.to_int()));
 
@@ -98,6 +105,8 @@ void Window::updateBottomBar(int currentRow, int currentColumn, int previousRow,
     ui.downloadedSinceStart->setText(QString::fromStdString(status->downloadedSinceStart.toString()));
     ui.connectionCount->setText(QString::number(status->connectionCount));
 
+    ui.DeleteConfig->setEnabled(true);
+
     ui.BottomBar->show();
 }
 
@@ -106,4 +115,43 @@ void Window::showWarning(std::string info)
     QMessageBox msgBox;
     msgBox.setText(QString::fromStdString(info));
     msgBox.exec();
+}
+
+void Window::deleteFile()
+{
+    std::string torrentHash;
+    int rowIndex = 0;
+
+    for(auto i: idToRow)
+    {
+        if(i.second == ui.DownloadedFiles->currentRow())
+        {
+            torrentHash = i.first;
+            rowIndex = i.second;
+            break;
+        }
+    }
+
+    if (!torrentHash.empty())
+    {
+        idToRow.erase(torrentHash);
+
+        for(auto i: idToRow)
+        {
+            if(i.second > rowIndex)
+            {
+                --i.second;
+            }
+        }
+
+        rowStatus.erase(rowStatus.begin() + rowIndex);
+        ui.DownloadedFiles->removeRow(rowIndex);
+
+        size_t pos = torrentHash.rfind('/');
+
+        TorrentManager::getInstance().remove(torrentHash.substr(pos + 1));
+    }
+
+    ui.DownloadedFiles->clearSelection();
+    ui.BottomBar->hide();
 }

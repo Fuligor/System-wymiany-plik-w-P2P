@@ -40,16 +40,6 @@ void DownloadFileWindow::init()
     ui.saveName->setText("");
 }
 
-//void DownloadFileWindow::getTorrents()
-//{
-//    TorrentsDialog->show();
-//}
-//
-//void DownloadFileWindow::getSaves()
-//{
-//    SavesDialog->show();
-//}
-
 void DownloadFileWindow::torrentSelected()
 {
     ui.torrentName->setText(TorrentsDialog->selectedFiles()[0]);
@@ -80,8 +70,8 @@ void DownloadFileWindow::check()
     {
 
         QMessageBox msgBox;
-        msgBox.setText(QString::fromStdWString(L"Przynajmniej jedno pole jest puste."));
-        msgBox.setInformativeText(QString::fromStdWString(L"Uzupełnij puste pola, by kontynuować."));
+        msgBox.setText("Przynajmniej jedno pole jest puste.");
+        msgBox.setInformativeText("Uzupełnij puste pola, by kontynuować.");
         msgBox.exec();
     }
     else

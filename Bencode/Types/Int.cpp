@@ -57,11 +57,6 @@ bencode::Int bencode::Int::operator+(const Int& b) const
 	return Int(mValue + b.mValue);
 }
 
-bencode::Int bencode::Int::operator-() const
-{
-	return Int(-mValue);
-}
-
 bencode::Int bencode::Int::operator-(const size_t& b) const
 {
 	return Int(mValue - b);

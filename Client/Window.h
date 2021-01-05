@@ -8,6 +8,7 @@
 #include "DownloadFileWindow.h"
 
 #include <map>
+#include <vector>
 
 struct TorrentDownloadStatus;
 
@@ -19,8 +20,8 @@ class Window : public QMainWindow
     ShareFileWindow* shareFileWindow;
     DownloadFileWindow* downloadFileWindow;
 
-    std::map <std::string, size_t> idToRow;
-    std::map <size_t, const TorrentDownloadStatus*> rowToStatus;
+    std::map <std::string, int> idToRow;
+    std::vector <const TorrentDownloadStatus*> rowStatus;
 public:
     Window(QWidget *parent = Q_NULLPTR);
 
@@ -30,4 +31,5 @@ protected slots:
     void torrentStatusUpdated(const std::string torrentId, const TorrentDownloadStatus* status);
     void updateBottomBar(int currentRow, int currentColumn, int previousRow, int previousColumn);
     void showWarning(std::string fileName);
+    void deleteFile();
 };

@@ -17,6 +17,7 @@ TorrentDownloader::TorrentDownloader(const std::shared_ptr <bencode::Dict>& torr
 	connect(&tcpServer, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
 	connect(this, SIGNAL(pieceDownloaded(size_t)), this, SIGNAL(statusUpdated()));
 	connect(this, SIGNAL(pieceUploaded(size_t)), this, SIGNAL(statusUpdated()));
+	connect(&updateTimer, SIGNAL(timeout()), this, SLOT(onUpdateTimeout()));
 
 	tcpServer.listen();
 	tracker = new TrackerConnection(torrentDict, tcpServer.serverPort(), this);
@@ -31,6 +32,12 @@ TorrentDownloader::TorrentDownloader(const std::shared_ptr <bencode::Dict>& torr
 	downloadStatus.fileName = std::dynamic_pointer_cast <bencode::String> ((*info)["name"])->data();
 	downloadStatus.fileSize = std::dynamic_pointer_cast <bencode::Int> ((*info)["length"])->getValue();
 	downloadStatus.connectionCount = 0;
+	downloadStatus.estimatedEndTime.setHMS(99, 59, 59);
+
+	updateTimer.setInterval(1000);
+	updateTimer.setSingleShot(false);
+	updateTimer.start();
+
 	mFile = new File(QString::fromStdString(status.downloadPath), pieceSize, downloadStatus.fileSize.to_int());
 
 	calculateDownloadedSize();
@@ -52,11 +59,12 @@ void TorrentDownloader::createConnection()
 	QString addres = QString::fromStdString(availablePeers.begin()->address);
 	QTcpSocket* socket = new QTcpSocket();
 
-	//qDebug() << addres << " " << availablePeers.begin()->port;
-
 	socket->connectToHost(addres, availablePeers.begin()->port);
 	availablePeers.erase(availablePeers.begin());
+
+	statusMutex.lock();
 	downloadStatus.connectionCount++;
+	statusMutex.unlock();
 
 	new PeerConnection(socket, infoHash, mFile, pieces, this);
 
@@ -125,12 +133,16 @@ void TorrentDownloader::onTrackerStatusChanged(const ConnectionStatus& status)
 	default:
 		if (downloadStatus.downloadedSinceStart.to_int() == downloadStatus.fileSize.to_int())
 		{
+			statusMutex.lock();
 			downloadStatus.connectionState = TorrentDownloadStatus::State::SEEDING;
+			statusMutex.unlock();
 			mFile->readonly(true);
 		}
 		else
 		{
+			statusMutex.lock();
 			downloadStatus.connectionState = TorrentDownloadStatus::State::LEECHING;
+			statusMutex.unlock();
 			mFile->readonly(false);
 		}
 		break;
@@ -146,6 +158,16 @@ void TorrentDownloader::onNewConnection()
 	new PeerConnection(tcpServer.nextPendingConnection(), infoHash, mFile, pieces, this);
 }
 
+void TorrentDownloader::onUpdateTimeout()
+{
+	downloadStatus.downloadSpeed = 0;
+	downloadStatus.uploadSpeed = 0;
+	downloadSpeed = 0;
+
+	emit updateStatistics();
+	emit statusUpdated();
+}
+
 void TorrentDownloader::peerHandshake(std::string peerId, PeerConnection* connection)
 {
 	if (connectedPeers.find(peerId) == connectedPeers.end())
@@ -157,7 +179,10 @@ void TorrentDownloader::peerHandshake(std::string peerId, PeerConnection* connec
 	else
 	{
 		connection->deleteLater();
+
+		statusMutex.lock();
 		downloadStatus.connectionCount--;
+		statusMutex.unlock();
 
 		if (pieces.getSize() > pieces.getCount())
 		{
@@ -166,15 +191,15 @@ void TorrentDownloader::peerHandshake(std::string peerId, PeerConnection* connec
 
 		emit statusUpdated();
 	}
-	
-	
 }
 
 void TorrentDownloader::closeConnection(std::string peerId, PeerConnection* connection)
 {
-	connectedPeers.erase(peerId);
+	statusMutex.lock();
+	downloadStatus.connectionCount -= connectedPeers.erase(peerId);
+	statusMutex.unlock();
+	
 	connection->deleteLater();
-	downloadStatus.connectionCount--;
 	if (pieces.getSize() > pieces.getCount())
 	{
 		connectionManager();
@@ -202,6 +227,39 @@ void TorrentDownloader::downloadMenager(PeerConnection* connection)
 		connection->downloadPiece(index, getPieceSize(index), piecesHash.substr(index * 20, 20));
 	}
 	mutex.unlock();
+}
+
+void TorrentDownloader::speedUpdated(FileSize newDownload, FileSize newUpload, FileSize newFileDownload)
+{
+	statusMutex.lock();
+
+	downloadStatus.downloadSpeed += newDownload;
+	downloadStatus.uploadSpeed += newUpload;
+	downloadSpeed += newFileDownload;
+
+	FileSize left = downloadStatus.fileSize - downloadStatus.downloadedSinceStart;
+
+	if (downloadSpeed.to_int() > 0)
+	{
+		downloadStatus.estimatedEndTime = QTime::fromMSecsSinceStartOfDay(left.to_int() * 1000 / downloadSpeed.to_int());
+	}
+	else
+	{
+		downloadStatus.estimatedEndTime.setHMS(99, 59, 59);
+	}
+
+	statusMutex.unlock();
+
+	emit statusUpdated();
+}
+
+void TorrentDownloader::onDownloadCanceled(size_t index)
+{
+	mutex.lock();
+	piecesToDownload.set(index);
+	mutex.unlock();
+
+	return;
 }
 
 void TorrentDownloader::onPieceDownloaded(size_t index)

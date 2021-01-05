@@ -18,8 +18,6 @@ public:
 
 public slots:
 	void init();
-    //void getTorrents();
-    //void getSaves();
     void torrentSelected();
     void saveSelected();
 	void DownloadFile();
