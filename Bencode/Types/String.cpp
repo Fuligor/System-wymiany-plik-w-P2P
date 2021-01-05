@@ -69,7 +69,7 @@ std::string bencode::String::code() const
 	result = std::to_string(size());
 	result += ":";
 
-	for (size_t i = 0; i < size(); ++i)
+	for (uint64_t i = 0; i < size(); ++i)
 	{
 		result += to_utf8((*this)[i]);
 	}

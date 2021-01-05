@@ -15,8 +15,8 @@ TorrentDownloader::TorrentDownloader(const std::shared_ptr <bencode::Dict>& torr
 	infoHash = InfoDictHash::getHash(torrentDict);
 
 	connect(&tcpServer, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
-	connect(this, SIGNAL(pieceDownloaded(size_t)), this, SIGNAL(statusUpdated()));
-	connect(this, SIGNAL(pieceUploaded(size_t)), this, SIGNAL(statusUpdated()));
+	connect(this, SIGNAL(pieceDownloaded(uint64_t)), this, SIGNAL(statusUpdated()));
+	connect(this, SIGNAL(pieceUploaded(uint64_t)), this, SIGNAL(statusUpdated()));
 	connect(&updateTimer, SIGNAL(timeout()), this, SLOT(onUpdateTimeout()));
 
 	tcpServer.listen();
@@ -24,7 +24,7 @@ TorrentDownloader::TorrentDownloader(const std::shared_ptr <bencode::Dict>& torr
 	pieceSize = std::dynamic_pointer_cast <bencode::Int> ((*info)["piece length"])->getValue();
 	std::shared_ptr <bencode::String> temp = std::dynamic_pointer_cast <bencode::String> ((*info)["pieces"]);
 	
-	for (size_t i = 0; i < temp->size(); ++i)
+	for (uint64_t i = 0; i < temp->size(); ++i)
 	{
 		piecesHash += (char) temp->at(i);
 	}
@@ -87,7 +87,7 @@ void TorrentDownloader::connectionManager()
 	}
 }
 
-size_t TorrentDownloader::getPieceSize(size_t index)
+uint64_t TorrentDownloader::getPieceSize(uint64_t index)
 {
 	if (index == pieces.getSize() - 1)
 	{
@@ -107,9 +107,9 @@ void TorrentDownloader::calculateDownloadedSize()
 	}
 	else
 	{
-		size_t lastBit = pieces.getSize() - 1;
+		uint64_t lastBit = pieces.getSize() - 1;
 
-		size_t piecesSize = (pieces.getCount() - pieces.bit(lastBit)) * pieceSize;
+		uint64_t piecesSize = (pieces.getCount() - pieces.bit(lastBit)) * pieceSize;
 
 		downloadStatus.downloadedSinceStart = piecesSize + getPieceSize(lastBit) * pieces.bit(lastBit);
 
@@ -218,11 +218,11 @@ void TorrentDownloader::downloadMenager(PeerConnection* connection)
 	}
 	
 	BitSet interestingPieces = piecesToDownload & connection->getPieces();
-	size_t size = interestingPieces.getCount();
+	uint64_t size = interestingPieces.getCount();
 	if (size > 0)
 	{
-		size_t randomPiece = std::rand() % size + 1;
-		size_t index = interestingPieces.getSetedBit(randomPiece);
+		uint64_t randomPiece = std::rand() % size + 1;
+		uint64_t index = interestingPieces.getSetedBit(randomPiece);
 		piecesToDownload.reset(index);
 		connection->downloadPiece(index, getPieceSize(index), piecesHash.substr(index * 20, 20));
 	}
@@ -253,7 +253,7 @@ void TorrentDownloader::speedUpdated(FileSize newDownload, FileSize newUpload, F
 	emit statusUpdated();
 }
 
-void TorrentDownloader::onDownloadCanceled(size_t index)
+void TorrentDownloader::onDownloadCanceled(uint64_t index)
 {
 	mutex.lock();
 	piecesToDownload.set(index);
@@ -262,11 +262,11 @@ void TorrentDownloader::onDownloadCanceled(size_t index)
 	return;
 }
 
-void TorrentDownloader::onPieceDownloaded(size_t index)
+void TorrentDownloader::onPieceDownloaded(uint64_t index)
 {
 	pieces.set(index);
 
-	size_t pieceSize = getPieceSize(index);
+	uint64_t pieceSize = getPieceSize(index);
 
 	downloadStatus.downloaded += pieceSize;
 	downloadStatus.downloadedSinceStart += pieceSize;
@@ -288,7 +288,7 @@ void TorrentDownloader::onPieceDownloaded(size_t index)
 	emit pieceDownloaded(index);
 }
 
-void TorrentDownloader::onPieceUploaded(size_t pieceSize)
+void TorrentDownloader::onPieceUploaded(uint64_t pieceSize)
 {
 	downloadStatus.uploaded += pieceSize;
 

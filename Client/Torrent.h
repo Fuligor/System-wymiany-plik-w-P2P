@@ -35,14 +35,14 @@ public:
 	void deleteFile();
 protected:
 	void write();
-	void write(size_t size);
+	void write(uint64_t size);
 	void read();
-	void read(size_t& size);
-	void updatePage(const size_t page);
+	void read(uint64_t& size);
+	void updatePage(const uint64_t page);
 public:
 	const TorrentConfig* getStatus() const;
 public slots:
-	void onPieceDownloaded(const size_t& index);
+	void onPieceDownloaded(const uint64_t& index);
 	void downloadStatusUpdated();
 signals:
 	void torrentStatusUpdated(const std::string, const TorrentDownloadStatus*);

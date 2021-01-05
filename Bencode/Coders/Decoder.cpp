@@ -5,7 +5,7 @@
 std::wstring bencode::Decoder::getline(const std::wstring& string, const std::wstring& delim)
 {
 	std::wstring result;
-	size_t find = string.find(delim, position);
+	uint64_t find = string.find(delim, position);
 
 	if(find == std::wstring::npos)
 	{
@@ -13,7 +13,7 @@ std::wstring bencode::Decoder::getline(const std::wstring& string, const std::ws
 	}
 
 	result = string.substr(position, find - position);
-	position = find + (size_t)1;
+	position = find + (uint64_t)1;
 
 	return result;
 }
@@ -53,7 +53,7 @@ bencode::Int* bencode::Decoder::int_decoder(const std::wstring& string)
 
 bencode::String* bencode::Decoder::string_decoder(const std::wstring& string)
 {
-	size_t size;
+	uint64_t size;
 	std::wstring buf;
 
 	buf = getline(string, L":");

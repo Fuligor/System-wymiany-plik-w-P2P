@@ -147,7 +147,7 @@ void Window::deleteFile()
         rowStatus.erase(rowStatus.begin() + rowIndex);
         ui.DownloadedFiles->removeRow(rowIndex);
 
-        size_t pos = torrentHash.rfind('/');
+        uint64_t pos = torrentHash.rfind('/');
 
         TorrentManager::getInstance().remove(torrentHash.substr(pos + 1));
     }

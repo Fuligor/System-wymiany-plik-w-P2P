@@ -38,12 +38,12 @@ private:
     BitSet& myPieces;
     BitSet havePieces;
     std::string fragBuff;
-    size_t toDownload;
-    size_t downloadLength = 16 * 1024;
+    uint64_t toDownload;
+    uint64_t downloadLength = 16 * 1024;
     bool isDownloading;
     std::string expectedHash;
-    size_t download_index;
-    size_t retransmisions;
+    uint64_t download_index;
+    uint64_t retransmisions;
 
     FileSize downloadedSinceLastUpdate;
     FileSize uploadedSinceLastUpdate;
@@ -51,29 +51,29 @@ private:
 public:
     PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File* mFile, BitSet& myPieces, TorrentDownloader* parent);
     ~PeerConnection();
-    void downloadPiece(size_t index, size_t pieceSize, std::string fragHash);
+    void downloadPiece(uint64_t index, uint64_t pieceSize, std::string fragHash);
     const BitSet& getPieces();
     bool getIsDownloading();
 protected:
-    std::string write(size_t size);
-    size_t read(const std::string& size);
+    std::string write(uint64_t size);
+    uint64_t read(const std::string& size);
 public slots:
     void bitfield();
 protected slots:
     void handshake();
-    void have(size_t index);
-    void request(size_t index, size_t begin);
-    void piece(size_t index, size_t begin, std::string block);
+    void have(uint64_t index);
+    void request(uint64_t index, uint64_t begin);
+    void piece(uint64_t index, uint64_t begin, std::string block);
     void readData();
     void onDisconnection();
     void updateStatistics();
 signals:
     void downloadRequest(PeerConnection* conn);
-    void pieceDownloaded(size_t index);
+    void pieceDownloaded(uint64_t index);
     void initialize(std::string idpeer, PeerConnection* conn);
     void peerdisconnect(std::string peerid, PeerConnection* conn);
-    void uploaded(size_t uploadSize);
+    void uploaded(uint64_t uploadSize);
     void speedUpdated(FileSize, FileSize, FileSize);
-    void downloadCanceled(size_t index);
+    void downloadCanceled(uint64_t index);
 };
 #endif

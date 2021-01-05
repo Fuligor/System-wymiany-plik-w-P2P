@@ -9,26 +9,26 @@ namespace bencode
 		:public ICode
 	{
 	protected:
-		size_t mValue;
+		uint64_t mValue;
 	public:
 		Int();
-		Int(const size_t& value);
+		Int(const uint64_t& value);
 		Int(const Int& other);
 		Int(Int&& other) noexcept;
 
-		size_t getValue() const;
+		uint64_t getValue() const;
 		virtual std::string code() const;
 
-		Int& operator = (const size_t& value);
+		Int& operator = (const uint64_t& value);
 		Int& operator = (const Int& other);
 
-		Int operator + (const size_t& b) const;
+		Int operator + (const uint64_t& b) const;
 		Int operator + (const Int& b) const;
 
-		Int operator - (const size_t& b) const;
+		Int operator - (const uint64_t& b) const;
 		Int operator - (const Int& b) const;
 	};
 
-	Int operator + (const size_t& a, const Int& b);
-	Int operator - (const size_t& a, const Int& b);
+	Int operator + (const uint64_t& a, const Int& b);
+	Int operator - (const uint64_t& a, const Int& b);
 }

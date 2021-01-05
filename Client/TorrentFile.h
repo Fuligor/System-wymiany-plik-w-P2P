@@ -14,7 +14,7 @@ class TorrentFile
         int pieceLength;
 
     public:
-        TorrentFile(const std::string fname, const std::string Utracker, size_t pLength);
+        TorrentFile(const std::string fname, const std::string Utracker, uint64_t pLength);
         ~TorrentFile();
         QString getFileName();
 public slots:

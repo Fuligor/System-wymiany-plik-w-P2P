@@ -7,7 +7,7 @@
 
 #include "FileFrag.h"
 
-File::File(const QString& name, const size_t& fragSize, QObject* parent)
+File::File(const QString& name, const uint64_t& fragSize, QObject* parent)
 	:QObject(parent), mFile(new QFile(name, this)), mFragSize(fragSize)
 {
 	mFile->open(QIODevice::ReadWrite);
@@ -21,7 +21,7 @@ File::File(const QString& name, const size_t& fragSize, QObject* parent)
 	}
 }
 
-File::File(const QString& name, const size_t& fragSize, const size_t& fileSize, QObject* parent)
+File::File(const QString& name, const uint64_t& fragSize, const uint64_t& fileSize, QObject* parent)
 	:QObject(parent), mFile(new QFile(name, this)), mFragSize(fragSize)
 {
 	mFile->open(QIODevice::ReadWrite);
@@ -69,12 +69,12 @@ void File::readonly(bool isReadonly)
 	}
 }
 
-const size_t File::getSize() const
+const uint64_t File::getSize() const
 {
 	return mFileSize;
 }
 
-const size_t File::getFragSize() const
+const uint64_t File::getFragSize() const
 {
 	return mFragSize;
 }
