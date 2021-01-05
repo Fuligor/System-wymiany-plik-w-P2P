@@ -45,6 +45,30 @@ FileFrag* File::operator[](const unsigned int index)
 	return mFileFragments[index];
 }
 
+bool File::readonly() const
+{
+	return mIsReadonly;
+}
+
+void File::readonly(bool isReadonly)
+{
+	if(mIsReadonly != isReadonly)
+	{
+		mIsReadonly= isReadonly;
+
+		if(mIsReadonly == true)
+		{
+			mFile->close();
+			mFile->open(QIODevice::ReadOnly);
+		}
+		else
+		{
+			mFile->close();
+			mFile->open(QIODevice::ReadWrite);
+		}
+	}
+}
+
 const size_t File::getSize() const
 {
 	return mFileSize;

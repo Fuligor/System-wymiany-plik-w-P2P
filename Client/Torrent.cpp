@@ -121,7 +121,6 @@ void Torrent::read()
 	size_t pieceCount;
 	size_t torrentPathLenght;
 	size_t downloadPathLenght;
-	//size_t connectionIdSize;
 	char* buffer;
 	QByteArray buf;
 
@@ -185,7 +184,5 @@ void Torrent::onPieceDownloaded(const size_t& index)
 
 void Torrent::downloadStatusUpdated()
 {
-	//std::cout << file->fileName().toStdString() << std::endl;
-
 	emit torrentStatusUpdated(file->fileName().toStdString(), &(downloader->getDownloadStatus()));
 }

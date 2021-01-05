@@ -126,10 +126,12 @@ void TorrentDownloader::onTrackerStatusChanged(const ConnectionStatus& status)
 		if (downloadStatus.downloadedSinceStart.to_int() == downloadStatus.fileSize.to_int())
 		{
 			downloadStatus.connectionState = TorrentDownloadStatus::State::SEEDING;
+			mFile->readonly(true);
 		}
 		else
 		{
 			downloadStatus.connectionState = TorrentDownloadStatus::State::LEECHING;
+			mFile->readonly(false);
 		}
 		break;
 	}

@@ -70,7 +70,6 @@ protected slots:
 	void onTrackerStatusChanged(const ConnectionStatus& status);
 	void onNewConnection();
 	
-
 signals:
 	void peerAdded();
 	void statusUpdated();

@@ -19,7 +19,10 @@ void TorrentManager::updateDownloadList()
 	{
 		std::string temp = i.toStdString();
 
-		fileList[temp] = new Torrent(temp);
+		if (temp.find('.') == std::string::npos)
+		{
+			fileList[temp] = new Torrent(temp);
+		}
 	}
 }
 

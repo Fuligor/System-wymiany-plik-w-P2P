@@ -19,6 +19,7 @@ class File
 	QVector <FileFrag*> mFileFragments;
 	size_t mFragSize;
 	size_t mFileSize;
+	bool mIsReadonly = true;
 public:
 	File(const QString& name, const size_t& fragSize,  QObject *parent = nullptr);
 	File(const QString& name, const size_t& fragSize, const size_t& fileSize, QObject* parent = nullptr);
@@ -26,6 +27,8 @@ public:
 
 	FileFrag* operator [] (const unsigned int index);
 
+	bool readonly() const;
+	void readonly(bool isReadonly);
 	const size_t getSize() const;
 	const size_t getFragSize() const;
 	const unsigned int getFragCount() const;
