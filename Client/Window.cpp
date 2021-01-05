@@ -2,6 +2,7 @@
 
 #include "TorrentManager.h"
 #include "TorrentDownloadStatus.h"
+#include <QMessageBox>
 
 Window::Window(QWidget *parent)
     : QMainWindow(parent)
@@ -30,7 +31,7 @@ Window::Window(QWidget *parent)
     connect(ui.DownloadNewFIles, SIGNAL(clicked()), downloadFileWindow, SLOT(show()));
     connect(ui.DownloadedFiles, SIGNAL(currentCellChanged(int, int, int, int)), this, SLOT(updateBottomBar(int, int, int, int)));
     connect(&TorrentManager::getInstance(), SIGNAL(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)), this, SLOT(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)));
-
+    connect(&TorrentManager::getInstance(), SIGNAL(wrongConfigFile(std::string)), this, SLOT(showWarning(std::string)));
     TorrentManager::getInstance().updateDownloadList();
 }
 
@@ -98,4 +99,11 @@ void Window::updateBottomBar(int currentRow, int currentColumn, int previousRow,
     ui.connectionCount->setText(QString::number(status->connectionCount));
 
     ui.BottomBar->show();
+}
+
+void Window::showWarning(std::string info)
+{
+    QMessageBox msgBox;
+    msgBox.setText(QString::fromStdString(info));
+    msgBox.exec();
 }

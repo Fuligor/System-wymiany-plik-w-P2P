@@ -2,9 +2,12 @@
 #include <string>
 
 #include <QString>
+#include <qobject.h>
 
-class TorrentFile
+class TorrentFile 
+    :public QObject
 {
+    Q_OBJECT
     private:
         QString fileName;
         QString URLtracker;
@@ -14,4 +17,7 @@ class TorrentFile
         TorrentFile(const std::string fname, const std::string Utracker, size_t pLength);
         ~TorrentFile();
         void createFile();
+        QString getFileName();
+signals:
+    void torrentCreated(TorrentFile*);
 };

@@ -10,6 +10,7 @@
 #include "File.h"
 
 TorrentFile::TorrentFile(const std::string fname, const std::string Utracker, size_t pLength)
+    :QObject()
 {
     fileName = QString::fromStdString(fname);
     URLtracker = QString::fromStdString(Utracker);
@@ -53,6 +54,11 @@ void TorrentFile::createFile()
         outFile.write(buf);
         outFile.close();
     }
-
+    emit torrentCreated(this);
     return;
+}
+
+QString TorrentFile::getFileName()
+{
+	return fileName;
 }

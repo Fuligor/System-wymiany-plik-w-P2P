@@ -78,6 +78,7 @@ void DownloadFileWindow::check()
 {
     if (ui.saveName->text().isEmpty() || ui.torrentName->text().isEmpty())
     {
+
         QMessageBox msgBox;
         msgBox.setText(QString::fromStdWString(L"Przynajmniej jedno pole jest puste."));
         msgBox.setInformativeText(QString::fromStdWString(L"Uzupełnij puste pola, by kontynuować."));

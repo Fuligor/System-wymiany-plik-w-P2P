@@ -31,6 +31,7 @@ Client::Client()
 
         QDir().mkpath(config.absolutePath());
     }
+    thread.start();
 }
 
 const std::string Client::createId()
@@ -69,15 +70,22 @@ const std::string& Client::getConfigPath()
 
 void Client::shareFile(const std::string& fileName, const std::string& trackerAddres, const size_t pieceSize)
 {
-    TorrentFile file(fileName, trackerAddres, pieceSize);
-    file.createFile();
-
-    new Torrent(fileName + ".torrent", fileName, true);
+    TorrentFile* file = new TorrentFile(fileName, trackerAddres, pieceSize);
+    connect(file, SIGNAL(torrentCreated(TorrentFile*)), this, SLOT(onFileCreated(TorrentFile*)));
+    file->moveToThread(&thread);
+    file->createFile();
 }
 
 void Client::downloadFile(const std::string& torrentPath, const std::string& downloadPath)
 {
     new Torrent(torrentPath, downloadPath);
+}
+
+void Client::onFileCreated(TorrentFile* file)
+{
+    new Torrent(file->getFileName().toStdString() + ".torrent", file->getFileName().toStdString(), true);
+    file->deleteLater();
+    emit fileShared();
 }
 
 Client* Client::sigleInstance = nullptr;

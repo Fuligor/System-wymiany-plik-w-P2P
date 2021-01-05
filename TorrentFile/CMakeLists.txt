@@ -14,19 +14,7 @@ find_package(Qt5 COMPONENTS Widgets REQUIRED)
 # Dodaj źródło do pliku wykonywalnego tego projektu.
 
 set(SOURCES 
-	"File.h" 
-	"File.cpp"
-	"FileFrag.h"
-	"FileFrag.cpp" 
-    "InfoDictHash.cpp"
-    "InfoDictHash.h"
 	"Peer.h"
-	"TorrentFile.h"
-	"TorrentFile.cpp"
-	"torrentReader.h"
-	"torrentReader.cpp"
-	"TrackerRequest.h"
-	"TrackerRequest.cpp"
 )
 
 add_library (TorrentFile ${SOURCES})

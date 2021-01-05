@@ -29,4 +29,5 @@ private:
 protected slots:
     void torrentStatusUpdated(const std::string torrentId, const TorrentDownloadStatus* status);
     void updateBottomBar(int currentRow, int currentColumn, int previousRow, int previousColumn);
+    void showWarning(std::string fileName);
 };
