@@ -146,7 +146,7 @@ void Server::initEpoll()
 }
 
 Server::Server()
-    : configPath("config"), state(0)
+    : state(0)
 {
     std::srand(time(NULL));
 }

@@ -1,3 +1,5 @@
+//Klasa odpowiedzialna za nawi¹zywanie po³¹czeñ i komunikacjê miêdzy klientami
+//Opis komunikacji znajduje siê w sprawozdaniu
 #ifndef PEER_CONNECTION_H
 #define PEER_CONNECTION_H
 
@@ -39,6 +41,7 @@ private:
     BitSet havePieces;
     std::string fragBuff;
     uint64_t toDownload;
+    //Maksymalny rozmiar bloku fragmentu jednorazowo przesy³anego przez socket
     uint64_t downloadLength = 16 * 1024;
     bool isDownloading;
     std::string expectedHash;
@@ -52,10 +55,13 @@ public:
     PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File* mFile, BitSet& myPieces, TorrentDownloader* parent);
     ~PeerConnection();
     void downloadPiece(uint64_t index, uint64_t pieceSize, std::string fragHash);
+    //zwraca fragmenty posiadane przez druga stronê
     const BitSet& getPieces();
     bool getIsDownloading();
 protected:
+    //zapisanie liczby w postaci bajtów
     std::string write(uint64_t size);
+    //odczytanie bajtów do postaci liczby
     uint64_t read(const std::string& size);
 public slots:
     void bitfield();
@@ -64,6 +70,7 @@ protected slots:
     void have(uint64_t index);
     void request(uint64_t index, uint64_t begin);
     void piece(uint64_t index, uint64_t begin, std::string block);
+    //Obs³uga otrzymanych wiadomoœci
     void readData();
     void onDisconnection();
     void updateStatistics();

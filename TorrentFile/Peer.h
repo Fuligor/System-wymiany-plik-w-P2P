@@ -1,3 +1,4 @@
+//struktura przechowuj¹ca informacje o peer'ach
 #ifndef PEER_H
 #define PEER_H
 #include <string>

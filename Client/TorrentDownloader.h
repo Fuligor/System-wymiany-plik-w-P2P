@@ -1,3 +1,4 @@
+//Klasa obs³uguj¹ca pobieranie i udostêpnianie torrenta oraz nawi¹zaywanie po³¹czeñ z trackerem i peerami
 #ifndef TORRENT_DOWNLOADER_H
 #define TORRENT_DOWNLOADER_H
 #include <QObject>
@@ -49,6 +50,7 @@ private:
 	BitSet& pieces;
 	BitSet piecesToDownload;
 	uint64_t pieceSize;
+	//maksymalna liczba po³¹czeñ
 	uint64_t maxConn = 30;
 	FileSize downloadSpeed;
 

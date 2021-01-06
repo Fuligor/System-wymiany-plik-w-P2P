@@ -1,3 +1,4 @@
+//Klasa odpowiedzialna za buforowanie fragmentów pliku
 #ifndef BUFFER_MANAGER_H
 #define BUFFER_MANAGER_H
 

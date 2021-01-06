@@ -1,3 +1,4 @@
+//Klasa obs³uguj¹ca fragment pobieranego lub udostepnianego pliku
 #pragma once
 
 #include <QObject>

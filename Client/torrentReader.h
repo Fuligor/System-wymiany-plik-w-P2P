@@ -1,3 +1,4 @@
+//Klasa odpowiedzialna za odczytania s³ownika z pliku .torrent
 #pragma once
 #include "Bencode.h"
 

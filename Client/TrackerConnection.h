@@ -1,3 +1,5 @@
+//Klasa odpowiedzialna za nawi¹zanie i utrzymanie po³¹czenia z trackerem
+//Opis komunikacji peer-to-tracker znajduje siê w sprawozdaniu
 #ifndef TRACKERCONNECTION_H
 #define TRACKERCONNECTION_H
 #include <QObject>
@@ -46,7 +48,7 @@ private:
 public:
     TrackerConnection(const std::shared_ptr <bencode::Dict>& torrentDict, quint16 listenerPort, TorrentDownloader* parent);
     ~TrackerConnection();
-
+    //ustawia ile bajtow pozosta³o do pobrania
     void setLeft(uint64_t left);
 protected:
     void initRequest();

@@ -1,3 +1,4 @@
+// Klasa obs³uguj¹ca okno udostepniania pliku
 #pragma once
 
 #include <QWidget>
@@ -23,6 +24,7 @@ public slots:
 	void init();
     void fileSelected();
 	void shareFile();
+	//walidacja pól tekstowych
 	void check();
 	void onFileShared();
 	void showWarning(std::string info);

@@ -1,3 +1,4 @@
+//Klasa odpowiedzialna za obs³ugê rozmiaru danych
 #ifndef FILE_SIZE_H
 #define FILE_SIZE_H
 #include <string>

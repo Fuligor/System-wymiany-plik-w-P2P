@@ -1,3 +1,4 @@
+//Klasa tworz¹ca zapytanie do trackera
 #pragma once
 #include <string>
 #include "Bencode.h"

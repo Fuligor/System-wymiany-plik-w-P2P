@@ -1,3 +1,4 @@
+//struktura przechowuj¹ca stan pobierana i udostêpniania pliku
 #ifndef TORRENT_DOWNLOAD_STATUS
 #define TORRENT_DOWNLOAD_STATUS
 #include <stddef.h>

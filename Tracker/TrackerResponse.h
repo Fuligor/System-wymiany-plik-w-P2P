@@ -1,3 +1,5 @@
+//Klasa odpowiadaj¹ca za stworzenie odpowiedzi trackera dla peera
+//Opis tworzenia odpowiedzi jest w sprawozdaniu
 #ifndef TRACKER_RESPONSE_H
 #define TRACKER_RESPONSE_H
 #include <string>
@@ -21,7 +23,6 @@ class TrackerResponse
         void setF_reason(std::string reason);
         void resetF_reason();
         void setInterval(int interv);
-        void resetTracker_id();
         void setComplete(int com);
         void setIncomplete(int incom);
         void addPeer(const Peer& peer);

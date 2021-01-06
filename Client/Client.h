@@ -1,3 +1,4 @@
+// Klasa typu singleton, która tworzy instancje klienta oraz obs³uguje pobieranie i udostepnianie plików
 #ifndef CLIENT_H
 #define CLIENT_H
 

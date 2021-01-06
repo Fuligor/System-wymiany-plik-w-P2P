@@ -1,3 +1,4 @@
+//Klasa zarzadzaj¹ca aktywnymi torrentami
 #ifndef TORRENT_MANAGER_H
 #define TORRENT_MANAGER_H
 #include <QObject>

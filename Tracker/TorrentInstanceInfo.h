@@ -1,3 +1,4 @@
+// Klasa przechowuj¹ca informacji o danym torrencie (pzechowuje listê peer'ów którzy s¹ po³¹czeni do trackera i sa zainteresowani danym torrentem, liczbê peer'ów posiadaj¹cych kompletny i niekompletny plik)
 #ifndef TORRENT_INSTANCE_INFO_H
 #define TORRENT_INSTANCE_INFO_H
 
@@ -18,11 +19,9 @@ public:
     TorrentInstanceInfo();
     ~TorrentInstanceInfo();
 
-    uint64_t newPeer();
     void addPeer(const Peer& peer, bool completed);
     void removePeer(const Peer& peer, bool completed);
     void setCompleted(const Peer& peer, bool completed);
-    Peer getPeer(const std::string& peerId);
 
     const uint64_t& getCompleted();
     const uint64_t& getIncompleted();
