@@ -30,6 +30,10 @@ protected:
 	void removeFile(const std::string& infoHash);
 signals:
 	void torrentStatusUpdated(const std::string, const TorrentDownloadStatus*);
+	void torrentPieceDownloaded(const TorrentDownloadStatus*);
+	void torrentPieceUploaded(const TorrentDownloadStatus*);
+	void torrentSpeedUpdated(const TorrentDownloadStatus*);
+	void torrentNewConnection(const TorrentDownloadStatus*);
 	void wrongConfigFile(std::string);
 public slots:
 	void clear();

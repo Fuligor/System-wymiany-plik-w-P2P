@@ -18,6 +18,8 @@ set(SOURCES
     "main.cpp" 
     "BitSet.cpp"
     "BitSet.h"
+    "BufferManager.cpp"
+    "BufferManager.h"
     "Client.cpp"
     "Client.h"
     "FileSize.cpp"

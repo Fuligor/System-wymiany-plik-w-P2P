@@ -172,6 +172,8 @@ void Server::create(int port, int queueSize)
     server->initListen(queueSize);
     server->initEpoll();
 
+    std::cout << "Nasłuchowanie na porcie " << port << "..." << std::endl;
+
     return;
 }
 

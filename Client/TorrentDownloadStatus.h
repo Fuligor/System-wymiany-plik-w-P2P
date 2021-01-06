@@ -2,7 +2,7 @@
 #define TORRENT_DOWNLOAD_STATUS
 #include <stddef.h>
 
-#include <QDateTime>
+#include <QElapsedTimer>
 #include <QTime>
 
 #include "FileSize.h"
@@ -15,10 +15,11 @@ struct TorrentDownloadStatus
 	FileSize downloadSpeed;
 	FileSize uploadSpeed;
 	QTime estimatedEndTime;
-	QDateTime startTime;
+	QElapsedTimer startTime;
 	std::wstring fileName;
 	FileSize fileSize;
 	uint64_t connectionCount;
+	mutable bool isActualVisable = false;
 	enum class State
 	{
 		CONNECTING_TO_TRACKER,

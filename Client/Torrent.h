@@ -43,9 +43,16 @@ public:
 	const TorrentConfig* getStatus() const;
 public slots:
 	void onPieceDownloaded(const uint64_t& index);
+	void onPieceUploaded(const uint64_t& pieceSize);
 	void downloadStatusUpdated();
+	void downloadSpeedUpdated();
+	void newDownloadConnection();
 signals:
 	void torrentStatusUpdated(const std::string, const TorrentDownloadStatus*);
+	void torrentPieceDownloaded(const TorrentDownloadStatus*);
+	void torrentPieceUploaded(const TorrentDownloadStatus*);
+	void torrentSpeedUpdated(const TorrentDownloadStatus*);
+	void torrentNewConnection(const TorrentDownloadStatus*);
 };
 
 #endif

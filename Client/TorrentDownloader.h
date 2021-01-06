@@ -70,7 +70,7 @@ public slots:
 	void peerHandshake(std::string peerId, PeerConnection* connection);
 	void closeConnection(std::string peerId, PeerConnection* connection);
 	void downloadMenager(PeerConnection* connection);
-	void speedUpdated(FileSize newDownload, FileSize newUpload, FileSize newFileDownload);
+	void updateSpeed(FileSize newDownload, FileSize newUpload, FileSize newFileDownload);
 	void onDownloadCanceled(uint64_t index);
 
 protected slots:
@@ -84,6 +84,8 @@ signals:
 	void statusUpdated();
 	void pieceDownloaded(uint64_t index);
 	void pieceUploaded(uint64_t pieceSize);
+	void speedUpdated();
+	void connectionUpated();
 	void updateStatistics();
 };
 #endif // !TORRENT_DOWNLOADER_H

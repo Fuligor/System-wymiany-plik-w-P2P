@@ -9,7 +9,14 @@
 
 int main(int argc, char *argv[])
 {
-    const unsigned int port = 1234;
+    if(argc <= 1)
+    {
+        std::cerr << "Proszę podać numer portu jako pierwszy parametr!" << std::endl;
+
+        return 1; 
+    }
+
+    const unsigned int port = atoi(argv[1]);
     const unsigned int queueSize = 500;
 
     Server::create(port, queueSize);
