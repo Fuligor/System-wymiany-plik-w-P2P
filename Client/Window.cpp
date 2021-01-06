@@ -32,6 +32,10 @@ Window::Window(QWidget *parent)
     connect(ui.DownloadedFiles, SIGNAL(currentCellChanged(int, int, int, int)), this, SLOT(updateBottomBar(int, int, int, int)));
     connect(ui.DeleteConfig, SIGNAL(clicked()), this, SLOT(deleteFile()));
     connect(&TorrentManager::getInstance(), SIGNAL(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)), this, SLOT(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)));
+    connect(&TorrentManager::getInstance(), SIGNAL(torrentPieceDownloaded(const TorrentDownloadStatus*)), this, SLOT(torrentPieceDownloaded(const TorrentDownloadStatus*)));
+    connect(&TorrentManager::getInstance(), SIGNAL(torrentPieceUploaded(const TorrentDownloadStatus*)), this, SLOT(torrentPieceUploaded(const TorrentDownloadStatus*)));
+    connect(&TorrentManager::getInstance(), SIGNAL(torrentSpeedUpdated(const TorrentDownloadStatus*)), this, SLOT(torrentSpeedUpdated(const TorrentDownloadStatus*)));
+    connect(&TorrentManager::getInstance(), SIGNAL(torrentNewConnection(const TorrentDownloadStatus*)), this, SLOT(torrentNewConnection(const TorrentDownloadStatus*)));
     connect(&TorrentManager::getInstance(), SIGNAL(wrongConfigFile(std::string)), this, SLOT(showWarning(std::string)));
     TorrentManager::getInstance().updateDownloadList();
 }
@@ -53,11 +57,6 @@ void Window::torrentStatusUpdated(const std::string torrentId, const TorrentDown
     {
         rowIndex = idToRow.at(torrentId);
         rowStatus[rowIndex] = status;
-    }
-
-    if(ui.DownloadedFiles->currentRow() == rowIndex)
-    {
-        updateBottomBar(rowIndex, 0, 0, 0);
     }
 
     switch (status->connectionState)
@@ -85,28 +84,54 @@ void Window::torrentStatusUpdated(const std::string torrentId, const TorrentDown
     ui.DownloadedFiles->setItem((int)rowIndex, 3, new QTableWidgetItem(QString::fromStdString(torrentId)));
 }
 
+void Window::torrentPieceDownloaded(const TorrentDownloadStatus* status)
+{
+    ui.progressBar->setValue((int) (100 * status->downloadedSinceStart.to_int() / status->fileSize.to_int()));
+
+    ui.downloaded->setText(QString::fromStdString(status->downloaded.toString()));
+    ui.downloadedSinceStart->setText(QString::fromStdString(status->downloadedSinceStart.toString()));
+}
+
+void Window::torrentPieceUploaded(const TorrentDownloadStatus* status)
+{
+    ui.uploaded->setText(QString::fromStdString(status->uploaded.toString()));
+}
+
+void Window::torrentSpeedUpdated(const TorrentDownloadStatus* status)
+{
+    ui.ETA->setText(status->estimatedEndTime.toString());
+    ui.downloadTime->setText(QTime::fromMSecsSinceStartOfDay(status->startTime.elapsed()).toString());
+    ui.downloadSpeed->setText(QString::fromStdString(status->downloadSpeed.toString() + "/s"));
+    ui.uploadSpeed->setText(QString::fromStdString(status->uploadSpeed.toString() + "/s"));
+}
+
+void Window::torrentNewConnection(const TorrentDownloadStatus* status)
+{
+    ui.connectionCount->setText(QString::number(status->connectionCount));
+}
+
 void Window::updateBottomBar(int currentRow, int currentColumn, int previousRow, int previousColumn)
 {
-    if(currentRow > (int) rowStatus.size())
+    if (currentRow >= (int) rowStatus.size() || currentRow < 0)
     {
         return;
     }
 
+    if (previousRow < (int) rowStatus.size() && previousRow >= 0)
+    {
+        rowStatus[previousRow]->isActualVisable = false;
+    }
+
     const TorrentDownloadStatus* status = rowStatus[currentRow];
 
-    ui.progressBar->setValue((int)(100 * status->downloadedSinceStart.to_int() / status->fileSize.to_int()));
+    status->isActualVisable = true;
 
-    ui.ETA->setText(status->estimatedEndTime.toString());
-    ui.downloadTime->setText(QString::number(status->startTime.secsTo(QDateTime::currentDateTime())));
-    ui.downloaded->setText(QString::fromStdString(status->downloaded.toString()));
-    ui.uploaded->setText(QString::fromStdString(status->uploaded.toString()));
-    ui.downloadSpeed->setText(QString::fromStdString(status->downloadSpeed.toString() + "/s"));
-    ui.uploadSpeed->setText(QString::fromStdString(status->uploadSpeed.toString() + "/s"));
-    ui.downloadedSinceStart->setText(QString::fromStdString(status->downloadedSinceStart.toString()));
-    ui.connectionCount->setText(QString::number(status->connectionCount));
+    torrentPieceDownloaded(status);
+    torrentPieceUploaded(status);
+    torrentSpeedUpdated(status);
+    torrentNewConnection(status);
 
     ui.DeleteConfig->setEnabled(true);
-
     ui.BottomBar->show();
 }
 
@@ -153,5 +178,6 @@ void Window::deleteFile()
     }
 
     ui.DownloadedFiles->clearSelection();
+    ui.DeleteConfig->setEnabled(false);
     ui.BottomBar->hide();
 }

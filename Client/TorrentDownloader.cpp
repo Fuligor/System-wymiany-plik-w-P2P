@@ -15,8 +15,6 @@ TorrentDownloader::TorrentDownloader(const std::shared_ptr <bencode::Dict>& torr
 	infoHash = InfoDictHash::getHash(torrentDict);
 
 	connect(&tcpServer, SIGNAL(newConnection()), this, SLOT(onNewConnection()));
-	connect(this, SIGNAL(pieceDownloaded(uint64_t)), this, SIGNAL(statusUpdated()));
-	connect(this, SIGNAL(pieceUploaded(uint64_t)), this, SIGNAL(statusUpdated()));
 	connect(&updateTimer, SIGNAL(timeout()), this, SLOT(onUpdateTimeout()));
 
 	tcpServer.listen();
@@ -29,6 +27,7 @@ TorrentDownloader::TorrentDownloader(const std::shared_ptr <bencode::Dict>& torr
 		piecesHash += (char) temp->at(i);
 	}
 	
+	downloadStatus.startTime.start();
 	downloadStatus.fileName = std::dynamic_pointer_cast <bencode::String> ((*info)["name"])->data();
 	downloadStatus.fileSize = std::dynamic_pointer_cast <bencode::Int> ((*info)["length"])->getValue();
 	downloadStatus.connectionCount = 0;
@@ -68,7 +67,7 @@ void TorrentDownloader::createConnection()
 
 	new PeerConnection(socket, infoHash, mFile, pieces, this);
 
-	emit statusUpdated();
+	emit connectionUpated();
 }
 
 void TorrentDownloader::connectionManager()
@@ -165,7 +164,7 @@ void TorrentDownloader::onUpdateTimeout()
 	downloadSpeed = 0;
 
 	emit updateStatistics();
-	emit statusUpdated();
+	emit speedUpdated();
 }
 
 void TorrentDownloader::peerHandshake(std::string peerId, PeerConnection* connection)
@@ -189,7 +188,7 @@ void TorrentDownloader::peerHandshake(std::string peerId, PeerConnection* connec
 			connectionManager();
 		}
 
-		emit statusUpdated();
+		emit connectionUpated();
 	}
 }
 
@@ -205,7 +204,7 @@ void TorrentDownloader::closeConnection(std::string peerId, PeerConnection* conn
 		connectionManager();
 	}
 
-	emit statusUpdated();
+	emit connectionUpated();
 }
 
 void TorrentDownloader::downloadMenager(PeerConnection* connection)
@@ -229,7 +228,7 @@ void TorrentDownloader::downloadMenager(PeerConnection* connection)
 	mutex.unlock();
 }
 
-void TorrentDownloader::speedUpdated(FileSize newDownload, FileSize newUpload, FileSize newFileDownload)
+void TorrentDownloader::updateSpeed(FileSize newDownload, FileSize newUpload, FileSize newFileDownload)
 {
 	statusMutex.lock();
 
@@ -250,7 +249,7 @@ void TorrentDownloader::speedUpdated(FileSize newDownload, FileSize newUpload, F
 
 	statusMutex.unlock();
 
-	emit statusUpdated();
+	emit speedUpdated();
 }
 
 void TorrentDownloader::onDownloadCanceled(uint64_t index)
