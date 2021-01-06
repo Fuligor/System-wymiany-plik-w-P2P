@@ -1,3 +1,4 @@
+//Klasa, która zajmuje siê obs³ug¹ pobieranego lub udostêpnianego pliku
 #pragma once
 
 #include <QObject>

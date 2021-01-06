@@ -67,12 +67,12 @@ bencode::Int bencode::Int::operator-(const Int& b) const
 	return Int(mValue - b.mValue);
 }
 
-bencode::Int operator+(const uint64_t& a, const bencode::Int& b)
+bencode::Int bencode::operator+(const uint64_t& a, const bencode::Int& b)
 {
 	return b + a;
 }
 
-bencode::Int operator-(const uint64_t& a, const bencode::Int& b)
+bencode::Int bencode::operator-(const uint64_t& a, const bencode::Int& b)
 {
 	return b - a;
 }

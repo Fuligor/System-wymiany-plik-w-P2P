@@ -1,3 +1,4 @@
+//Klasa obs³uguj¹ca g³ówne okno aplikacji klienckiej
 #pragma once
 
 #include <QtWidgets/QMainWindow>

@@ -1,3 +1,4 @@
+//Klasa odpowiedzialna za utworzenie pliku .torrent
 #pragma once
 #include <string>
 

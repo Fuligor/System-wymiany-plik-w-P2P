@@ -1,3 +1,5 @@
+// Klasa odpowiedzialna za utrzymywanie po³¹czenia i komunikacjê z klientami.
+
 #pragma once
 #include <string>
 
@@ -11,13 +13,13 @@ struct sockaddr_in;
 class Connection
 {
 protected:
+    //stan po³¹czenia
     enum class State
     {
         NEW,
         CONNECTED,
         CLOSED
     } state;
-
     int socket;
     int interval;
     sockaddr_in* address;
@@ -33,13 +35,13 @@ protected:
 public:
     Connection(const int& socket, int interval, sockaddr_in* address);
     ~Connection();
-
+    
     void closeConnection();
     Peer readPeerInfo(bencode::Dict &request);
     int getSocket();
 
     void addToBuffer(const char* data, uint64_t size);
-    bencode::Dict* getReguest();
+    bencode::Dict* getRequest();
     bool createResponse();
     bool sendResponse(const TrackerResponse& response);
 protected:

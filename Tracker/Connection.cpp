@@ -60,7 +60,7 @@ void Connection::addToBuffer(const char *data, uint64_t size)
     buf += utf8Decoder.decode(string);
 }
 
-bencode::Dict *Connection::getReguest()
+bencode::Dict *Connection::getRequest()
 {
     char ip_address[60];
     inet_ntop(AF_INET, &(address->sin_addr), ip_address, sizeof(ip_address));
@@ -91,7 +91,7 @@ bool Connection::createResponse()
 
     try
     {
-        request = getReguest();
+        request = getRequest();
     }
     catch (const std::exception &e)
     {

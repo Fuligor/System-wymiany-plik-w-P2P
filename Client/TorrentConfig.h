@@ -1,3 +1,4 @@
+//struktura przechowuj¹ca stan torrenta wykorzystywana przez klasê Torrent
 #ifndef TORRENT_CONFIG_H
 #define TORRENT_CONFIG_H
 

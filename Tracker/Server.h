@@ -1,3 +1,4 @@
+// Klasa typu singleton odpowiedzialna za uruchomienie serwera i przyjmowanie nowych po³¹czeñ
 #include <sys/types.h>
 #include <sys/wait.h>
 #include <sys/socket.h>
@@ -16,7 +17,7 @@ class Server
 {
 private:
     static Server* server;
-    const std::string configPath;
+  
 
     sockaddr_in address;
     int socket_desc;
@@ -32,7 +33,7 @@ protected:
     Server();
 public:
     ~Server();
-    
+    // Metoda tworz¹ca instancjê serwera
     static void create(int port, int queueSize);
     static Server* getInstance();
 
@@ -44,5 +45,4 @@ public:
     void run();
     void stop();
 
-    const std::string& getConfigPath() const;
 };

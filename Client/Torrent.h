@@ -1,5 +1,6 @@
-#ifndef TORRENT_MANAGER_FILE_H
-#define TORRENT_MANAGER_FILE_H
+//Klasa, która jest odpowiedzialna za przechowywanie stanu pobierania
+#ifndef TORRENT_H
+#define TORRENT_H
 #include <QObject>
 
 #include <memory>
@@ -34,10 +35,15 @@ public:
 
 	void deleteFile();
 protected:
+	//zapisuje stan do pliku
 	void write();
+	//zapisuje liczbê w postaci bajów
 	void write(uint64_t size);
+	//odczytuje stan z pliku
 	void read();
+	//odczytuje liczbê z postaci bajtów
 	void read(uint64_t& size);
+	//aktualizuje pobrane fragmenty
 	void updatePage(const uint64_t page);
 public:
 	const TorrentConfig* getStatus() const;

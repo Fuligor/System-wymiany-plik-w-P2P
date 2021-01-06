@@ -1,3 +1,4 @@
+//Klasa obs³uguj¹ca okno pobierania w kliencie
 #pragma once
 
 #include <QWidget>
@@ -21,6 +22,7 @@ public slots:
     void torrentSelected();
     void saveSelected();
 	void DownloadFile();
+	//pzeprowadza walidacjê pól tekstowych
 	void check();
 private:
 	Ui::DownloadFileWindow ui;
