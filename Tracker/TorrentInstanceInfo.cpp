@@ -16,7 +16,7 @@ TorrentInstanceInfo::~TorrentInstanceInfo()
 
 void TorrentInstanceInfo::addPeer(const Peer& peer, bool completed)
 {
-    for(size_t i = 0; i < peers.size(); ++i)
+    for(uint64_t i = 0; i < peers.size(); ++i)
     {
         if(peers[i].id == peer.id)
         {
@@ -40,7 +40,7 @@ void TorrentInstanceInfo::removePeer(const Peer& peer, bool completed)
 {
     std::vector <Peer>::iterator iterator = peers.end();
     
-    for(size_t i = 0; i < peers.size(); ++i)
+    for(uint64_t i = 0; i < peers.size(); ++i)
     {
         if(peers[i].id == peer.id)
         {
@@ -87,25 +87,25 @@ void TorrentInstanceInfo::setCompleted(const Peer& peer, bool completed)
     return;
 }
 
-const size_t& TorrentInstanceInfo::getCompleted()
+const uint64_t& TorrentInstanceInfo::getCompleted()
 {
     return num_completed;
 }
 
-const size_t& TorrentInstanceInfo::getIncompleted()
+const uint64_t& TorrentInstanceInfo::getIncompleted()
 {
     return num_incompleted;
 }
 
-const std::vector <Peer> TorrentInstanceInfo::getRandomPeers(const size_t peerCount, Peer peer)
+const std::vector <Peer> TorrentInstanceInfo::getRandomPeers(const uint64_t peerCount, Peer peer)
 {
-    size_t count;
+    uint64_t count;
 
     std::vector <Peer> result(peers.begin(), peers.end());
 
     std::vector <Peer>::iterator iterator = result.end();
     
-    for(size_t i = 0; i < result.size(); ++i)
+    for(uint64_t i = 0; i < result.size(); ++i)
     {
         if(result[i].id == peer.id)
         {

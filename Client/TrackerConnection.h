@@ -48,8 +48,6 @@ public:
     ~TrackerConnection();
 
     void setLeft(uint64_t left);
-    void setDownloaded(uint64_t downloaded);
-    void setUploaded(uint64_t uploaded);
 protected:
     void initRequest();
     void initConnection(const std::shared_ptr <bencode::Dict>& torrentDict);

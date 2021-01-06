@@ -53,7 +53,7 @@ int Connection::getSocket()
     return socket;
 }
 
-void Connection::addToBuffer(const char *data, size_t size)
+void Connection::addToBuffer(const char *data, uint64_t size)
 {
     std::wcout << buf << std::endl;
     std::string string(data, size);
@@ -183,13 +183,12 @@ bool Connection::createResponse()
     {
         const std::vector<Peer> peers = server->getTorrentInfo(info_hash.get()).getRandomPeers(50, peer);
 
-        for(size_t i = 0; i < peers.size(); ++i)
+        for(uint64_t i = 0; i < peers.size(); ++i)
         {
             response.addPeer(peers[i]);
         }
     }
 
-    response.setTracker_id("0");
     response.setComplete(server->getTorrentInfo(info_hash.get()).getCompleted());
     response.setIncomplete(server->getTorrentInfo(info_hash.get()).getIncompleted());
 
@@ -228,7 +227,7 @@ void Connection::sendResponse(const TrackerResponse &response)
 {
     std::string code = response.getResponse();
 
-    size_t writen = write(socket, code.c_str(), code.size());
+    uint64_t writen = write(socket, code.c_str(), code.size());
 
     while(writen < code.size())
     {

@@ -29,7 +29,7 @@ PeerConnection::PeerConnection(QTcpSocket* tcpSocket, std::string infoHash, File
 	connect(parent, SIGNAL(updateStatistics()), this, SLOT(updateStatistics()));
 	connect(this, SIGNAL(downloadCanceled(uint64_t)), parent, SLOT(onDownloadCanceled(uint64_t)));
 	connect(this, SIGNAL(speedUpdated(FileSize, FileSize, FileSize)), 
-			parent, SLOT(speedUpdated(FileSize, FileSize, FileSize)));
+			parent, SLOT(updateSpeed(FileSize, FileSize, FileSize)));
 
 	connectTimer.start(5000);
 

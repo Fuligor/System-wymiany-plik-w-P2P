@@ -49,29 +49,11 @@ void TrackerConnection::setLeft(uint64_t left)
 	mutex->unlock();
 }
 
-void TrackerConnection::setDownloaded(uint64_t downloaded)
-{
-	mutex->lock();
-	request.setDownloaded((int) downloaded);
-	mutex->unlock();
-}
-
-void TrackerConnection::setUploaded(uint64_t uploaded)
-{
-	mutex->lock();
-	request.setUploaded((int) uploaded);
-	mutex->unlock();
-}
-
 void TrackerConnection::initRequest()
 {
 	mutex->lock();
 	request.setPeer_id(Client::getInstance()->getId());
 	request.setPort(listenerPort);
-	request.setUploaded(0);
-	request.setDownloaded(0);
-	request.setCompact(false);
-	request.setNo_peer_id(false);
 	mutex->unlock();
 }
 

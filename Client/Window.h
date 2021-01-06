@@ -29,6 +29,10 @@ private:
     Ui::WindowClass ui;
 protected slots:
     void torrentStatusUpdated(const std::string torrentId, const TorrentDownloadStatus* status);
+    void torrentPieceDownloaded(const TorrentDownloadStatus* status);
+    void torrentPieceUploaded(const TorrentDownloadStatus* status);
+    void torrentSpeedUpdated(const TorrentDownloadStatus* status);
+    void torrentNewConnection(const TorrentDownloadStatus* status);
     void updateBottomBar(int currentRow, int currentColumn, int previousRow, int previousColumn);
     void showWarning(std::string fileName);
     void deleteFile();

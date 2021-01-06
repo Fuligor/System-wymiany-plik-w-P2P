@@ -14,8 +14,16 @@ void Torrent::initialize(const std::string& fileHash)
 	downloader = new TorrentDownloader(torrentDict, status, this);
 	TorrentManager::getInstance().append(fileHash, this);
 	connect(downloader, SIGNAL(statusUpdated()), this, SLOT(downloadStatusUpdated()));
-	connect(this, SIGNAL(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)), &TorrentManager::getInstance(), SIGNAL(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)));
 	connect(downloader, SIGNAL(pieceDownloaded(uint64_t)), this, SLOT(onPieceDownloaded(uint64_t)));
+	connect(downloader, SIGNAL(pieceUploaded(uint64_t)), this, SLOT(onPieceUploaded(uint64_t)));
+	connect(downloader, SIGNAL(speedUpdated()), this, SLOT(downloadSpeedUpdated()));
+	connect(downloader, SIGNAL(connectionUpated()), this, SLOT(newDownloadConnection()));
+
+	connect(this, SIGNAL(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)), &TorrentManager::getInstance(), SIGNAL(torrentStatusUpdated(const std::string, const TorrentDownloadStatus*)));
+	connect(this, SIGNAL(torrentPieceDownloaded(const TorrentDownloadStatus*)), &TorrentManager::getInstance(), SIGNAL(torrentPieceDownloaded(const TorrentDownloadStatus*)));
+	connect(this, SIGNAL(torrentPieceUploaded(const TorrentDownloadStatus*)), &TorrentManager::getInstance(), SIGNAL(torrentPieceUploaded(const TorrentDownloadStatus*)));
+	connect(this, SIGNAL(torrentSpeedUpdated(const TorrentDownloadStatus*)), &TorrentManager::getInstance(), SIGNAL(torrentSpeedUpdated(const TorrentDownloadStatus*)));
+	connect(this, SIGNAL(torrentNewConnection(const TorrentDownloadStatus*)), &TorrentManager::getInstance(), SIGNAL(torrentNewConnection(const TorrentDownloadStatus*)));
 
 	downloadStatusUpdated();
 }
@@ -207,9 +215,38 @@ const TorrentConfig* Torrent::getStatus() const
 void Torrent::onPieceDownloaded(const uint64_t& index)
 {
 	updatePage(index / 8);
+
+	if (downloader->getDownloadStatus().isActualVisable)
+	{
+		emit torrentPieceDownloaded(&(downloader->getDownloadStatus()));
+	}
+}
+
+void Torrent::onPieceUploaded(const uint64_t& pieceSize)
+{
+	if(downloader->getDownloadStatus().isActualVisable)
+	{
+		emit torrentPieceUploaded(&(downloader->getDownloadStatus()));
+	}
 }
 
 void Torrent::downloadStatusUpdated()
 {
 	emit torrentStatusUpdated(file->fileName().toStdString(), &(downloader->getDownloadStatus()));
+}
+
+void Torrent::downloadSpeedUpdated()
+{
+	if (downloader->getDownloadStatus().isActualVisable)
+	{
+		emit torrentSpeedUpdated(&(downloader->getDownloadStatus()));
+	}
+}
+
+void Torrent::newDownloadConnection()
+{
+	if (downloader->getDownloadStatus().isActualVisable)
+	{
+		emit torrentNewConnection(&(downloader->getDownloadStatus()));
+	}
 }
