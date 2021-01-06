@@ -4,6 +4,8 @@
 
 #include <iostream>
 
+#include "Connection.h"
+
 TorrentInstanceInfo::TorrentInstanceInfo()
     :num_completed(0), num_incompleted(0)
 {
@@ -54,7 +56,7 @@ void TorrentInstanceInfo::removePeer(const Peer& peer, bool completed)
     {
         peers.erase(iterator);
 
-        std::cout << "Usuwanie peera " + peer.id << std::endl;
+        std::cout << "Usuwanie peera " + Connection::getReadablePeerId(peer.id) << std::endl;
 
         if(completed)
         {
@@ -67,7 +69,7 @@ void TorrentInstanceInfo::removePeer(const Peer& peer, bool completed)
     }
     else
     {
-        std::cout << "Nie znaleziono peera " + peer.id << std::endl;
+        std::cout << "Nie znaleziono peera " + Connection::getReadablePeerId(peer.id) << std::endl;
     }
 }
 

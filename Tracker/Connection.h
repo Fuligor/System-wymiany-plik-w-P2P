@@ -1,10 +1,10 @@
 #pragma once
 #include <string>
 
-#include "../Bencode/Bencode.h"
+#include "Bencode.h"
 #include "TrackerResponse.h"
 
-#include "../TorrentFile/Peer.h"
+#include "Peer.h"
 
 struct sockaddr_in;
 
@@ -41,5 +41,9 @@ public:
     void addToBuffer(const char* data, uint64_t size);
     bencode::Dict* getReguest();
     bool createResponse();
-    void sendResponse(const TrackerResponse& response);
+    bool sendResponse(const TrackerResponse& response);
+protected:
+    static const char toHexEncoding(const unsigned char& number);
+public:
+    static std::string getReadablePeerId(std::string peerId);
 };

@@ -43,7 +43,7 @@ void Connection::closeConnection()
 
     state = State::CLOSED;
 
-    printf("Klient rozłączony\n");
+    std::cout << "Klient rozłączony\n";
 
     close(socket);
 }
@@ -57,13 +57,15 @@ void Connection::addToBuffer(const char *data, uint64_t size)
 {
     std::wcout << buf << std::endl;
     std::string string(data, size);
-    printf("Readed %lu\n", string.size());
     buf += utf8Decoder.decode(string);
 }
 
 bencode::Dict *Connection::getReguest()
 {
-    printf("Dekodowanie zapytania...\n");
+    char ip_address[60];
+    inet_ntop(AF_INET, &(address->sin_addr), ip_address, sizeof(ip_address));
+    std::cout << ip_address << ": Dekodowanie zapytania...\n";
+
     try
     {
         bencode::Dict *result = dynamic_cast<bencode::Dict *>(decoder.decode(buf));
@@ -72,7 +74,8 @@ bencode::Dict *Connection::getReguest()
     }
     catch (bencode::Exception::end_of_file& e)
     {
-        printf("Niepełne kodowanie... oczekiwanie na pozostałe fragmenty\n");
+
+        std::cerr << ip_address << ": Niepełne kodowanie... oczekiwanie na pozostałe fragmenty\n";
 
         return nullptr;
     }
@@ -92,7 +95,7 @@ bool Connection::createResponse()
     }
     catch (const std::exception &e)
     {
-        printf("Niepoprawne kodowanie! Odsyłanie odpowiedzi...");
+        std::cerr << "Niepoprawne kodowanie! Odsyłanie odpowiedzi...\n";
 
         response.setF_reason("Wrong bencoding!");
 
@@ -112,7 +115,6 @@ bool Connection::createResponse()
     if((*request)["event"] != nullptr)
     {
         event = std::dynamic_pointer_cast<bencode::String> ((*request)["event"]);
-        std::cout << event->code() << std::endl;
     }
 
     std::shared_ptr <bencode::Int> left = std::dynamic_pointer_cast<bencode::Int>((*request)["left"]);
@@ -125,7 +127,7 @@ bool Connection::createResponse()
     }
     else if (*info_hash != *temp_info_hash)
     {
-        printf("Niepoprawny hash pliku...");
+        std::cerr << "Niepoprawny hash pliku...\n";
 
         response.setF_reason("Wrong info hash!");
 
@@ -143,9 +145,12 @@ bool Connection::createResponse()
             completed = (left->getValue() == 0);
 
             server->getTorrentInfo(info_hash.get()).addPeer(temp_peer, completed);
+            peer = temp_peer;
         }
         else if (*event == L"stopped")
         {
+            std::cout << "Odebrano wiadomość " << event->code() << " od klienta o id " << getReadablePeerId(peer.id) << std::endl;
+            
             closeConnection();
 
             return true;
@@ -156,6 +161,22 @@ bool Connection::createResponse()
 
             server->getTorrentInfo(info_hash.get()).setCompleted(peer, completed);
         }
+        else
+        {
+            std::cout << "Odebrano niepoprawny typ wiadomości od klienta o id " << getReadablePeerId(peer.id) << std::endl;
+
+            response.setF_reason("Wrong message type!");
+
+            sendResponse(response);
+            
+            return false;
+        }
+
+        std::cout << "Odebrano wiadomość " << event->code() << " od klienta o id " << getReadablePeerId(peer.id) << std::endl;
+    }
+    else
+    {
+        std::cout << "Odebrano regularną wiadomość od klienta o id " << getReadablePeerId(peer.id) << std::endl;
     }
 
     if(peer.id != temp_peer.id || peer.address != temp_peer.address || peer.port != temp_peer.port)
@@ -168,7 +189,7 @@ bool Connection::createResponse()
 
     if(peer.id.empty())
     {
-        printf("Oczekiwano wysłania wiadomości started...");
+        std::cerr << "Oczekiwano wysłania wiadomości started...\n";
 
         response.setF_reason("Expecting started!");
 
@@ -176,8 +197,6 @@ bool Connection::createResponse()
 
         return false;
     }
-
-    std::cout << completed << std::endl;
 
     if(!completed)
     {
@@ -192,11 +211,10 @@ bool Connection::createResponse()
     response.setComplete(server->getTorrentInfo(info_hash.get()).getCompleted());
     response.setIncomplete(server->getTorrentInfo(info_hash.get()).getIncompleted());
 
+    std::cout << "Odsyłanie odpowiedzi:" << std::endl;
     std::cout << response.getResponse() << std::endl;
 
-    sendResponse(response);
-
-    return true;
+    return sendResponse(response);
 }
 
 
@@ -204,16 +222,9 @@ Peer Connection::readPeerInfo(bencode::Dict &request)
 {
     std::shared_ptr <bencode::Int> port = std::dynamic_pointer_cast<bencode::Int>(request["port"]);
 
-    std::cout << request["info_hash"]->code() << std::endl;
-    std::cout << request["peer_id"]->code() << std::endl;
-    std::cout << request["port"]->code() << std::endl;
-    std::cout << request["left"]->code() << std::endl;
-
     Peer temp_peer;
 
     temp_peer.id = request["peer_id"]->code().substr(3);
-
-    std::cout << "Peer id: " << temp_peer.id << std::endl;
 
     char ip_address[60];
     inet_ntop(AF_INET, &(address->sin_addr), ip_address, sizeof(ip_address));
@@ -223,14 +234,68 @@ Peer Connection::readPeerInfo(bencode::Dict &request)
     return temp_peer;
 }
 
-void Connection::sendResponse(const TrackerResponse &response)
+bool Connection::sendResponse(const TrackerResponse &response)
 {
     std::string code = response.getResponse();
 
-    uint64_t writen = write(socket, code.c_str(), code.size());
+    int writen = write(socket, code.c_str(), code.size());
 
-    while(writen < code.size())
+    if(writen < 0)
     {
-        writen += write(socket, code.substr(writen).c_str(), code.size() - writen);
+        std::cout << "Uszkodzony socket, zamykanie połączenia\n";
+
+        closeConnection();
+
+        return false;
     }
+
+    while(writen < (int) code.size())
+    {
+        int temp = write(socket, code.substr(writen).c_str(), code.size() - writen);
+        
+        if(temp < 0)
+        {
+            std::cout << "Uszkodzony socket, zamykanie połączenia\n";
+
+            closeConnection();
+
+            return false;
+        }
+
+        writen += temp;
+    }
+
+    return true;
+}
+
+const char Connection::toHexEncoding(const unsigned char& number)
+{
+	if (number < 10)
+	{
+		return '0' + number;
+	}
+	if (number < 16)
+	{
+		return 'a' + (number - (char) 10);
+	}
+
+	return '0';
+}
+
+std::string Connection::getReadablePeerId(std::string peerId)
+{
+    if(peerId.size() < 4)
+    {
+        return "";
+    }
+
+    std::string result = peerId.substr(0, 4);
+
+	for (uint64_t i = 4; i < peerId.size(); ++i)
+	{
+		result += toHexEncoding((unsigned char) peerId[i] / 16);
+		result += toHexEncoding((unsigned char) peerId[i] % 16);
+	}
+
+	return result;
 }

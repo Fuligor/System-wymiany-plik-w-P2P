@@ -42,6 +42,7 @@ public:
     TorrentInstanceInfo& getTorrentInfo(const std::wstring *info_hash); 
 
     void run();
+    void stop();
 
     const std::string& getConfigPath() const;
 };

@@ -5,7 +5,6 @@
 #include <pthread.h>
 #include <fcntl.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -14,6 +13,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <algorithm>
+#include <iostream>
 
 #include "Connection.h"
 #include "Peer.h"
@@ -54,6 +54,49 @@ void *readData(void *data)
     pthread_exit(NULL);
 }
 
+struct acceptConnection_data_t
+{
+    int socketEpoll;
+    int socket_desc;
+    sockaddr_in clientAddress;
+    socklen_t clientAddressSize;
+    epoll_event event;
+};
+
+void *acceptConnection(void *data)
+{
+    pthread_detach(pthread_self());
+
+    int connection_socket_descriptor;
+
+    acceptConnection_data_t* acceptConnection_data = (acceptConnection_data_t*) data;
+    int socketEpoll = acceptConnection_data->socketEpoll;
+    int socket_desc = acceptConnection_data->socket_desc;
+    sockaddr_in clientAddress = acceptConnection_data->clientAddress;
+    socklen_t clientAddressSize = acceptConnection_data->clientAddressSize;
+    epoll_event event = acceptConnection_data->event;
+
+    while (Server::getInstance()->isRunning())
+    {
+        connection_socket_descriptor = accept(socket_desc, (sockaddr *)&clientAddress, &clientAddressSize);
+        if (connection_socket_descriptor < 0)
+        {
+            std::cerr << "Błąd przy próbie utworzenia gniazda dla połączenia.\n";
+            exit(1);
+        }
+
+        fcntl(connection_socket_descriptor, F_SETFL, O_NONBLOCK, 1);
+
+        event.data.ptr = new Connection(connection_socket_descriptor, 120, &clientAddress);
+
+        epoll_ctl(socketEpoll, EPOLL_CTL_ADD, connection_socket_descriptor, &event);
+
+        std::cout << "Połączono z klientem\n";
+    }
+
+    pthread_exit(NULL);
+}
+
 void Server::bindSocket(int port)
 {
     static const char reuse_addr_val = 1;
@@ -67,7 +110,7 @@ void Server::bindSocket(int port)
     socket_desc = socket(AF_INET, SOCK_STREAM, 0);
     if (socket_desc < 0)
     {
-        fprintf(stderr, "Błąd przy próbie utworzenia gniazda..\n");
+        std::cerr << "Błąd przy próbie utworzenia gniazda..\n";
         exit(1);
     }
     setsockopt(socket_desc, SOL_SOCKET, SO_REUSEADDR, (char *)&reuse_addr_val, sizeof(reuse_addr_val));
@@ -76,7 +119,7 @@ void Server::bindSocket(int port)
 
     if (bind_result < 0)
     {
-        fprintf(stderr, "Błąd przy próbie dowiązania adresu IP i numeru portu do gniazda.\n");
+        std::cerr << "Błąd przy próbie dowiązania adresu IP i numeru portu do gniazda.\n";
         exit(1);
     }
 }
@@ -86,7 +129,7 @@ void Server::initListen(unsigned int queueSize)
     int listen_result = listen(socket_desc, queueSize);
     if (listen_result < 0)
     {
-        fprintf(stderr, "Błąd przy próbie ustawienia wielkości kolejki.\n");
+        std::cerr << "Błąd przy próbie ustawienia wielkości kolejki.\n";
         exit(1);
     }
 }
@@ -97,7 +140,7 @@ void Server::initEpoll()
 
     if (socketEpoll < 0)
     {
-        fprintf(stderr, "Błąd przy próbie utworzenie epoll");
+        std::cerr << "Błąd przy próbie utworzenie epoll\n";
         exit(-1);
     }
 }
@@ -119,6 +162,7 @@ void Server::create(int port, int queueSize)
 {
     if (server != nullptr)
     {
+        std::cerr << "Próba ponownego utworzenia instancji serwera! Zamykanie aplikacji.\n";
         throw std::invalid_argument("Server is already created!");
     }
 
@@ -135,6 +179,7 @@ Server *Server::getInstance()
 {
     if (server == nullptr)
     {
+        std::cerr << "Nie utworzono instancji serwera! Zamykanie aplikacji.\n";
         throw std::invalid_argument("Server wasn't created!");
     }
 
@@ -155,44 +200,65 @@ void Server::run()
 {
     state = state | 1;
 
-    int connection_socket_descriptor;
     int create_result = 0;
 
     epoll_event event;
     memset(&event, 0, sizeof(event));
     event.events = EPOLLIN;
 
-    pthread_t thread1;
-    create_result = pthread_create(&thread1, NULL, readData, NULL);
-    if (create_result)
-    {
-        fprintf(stderr, "Błąd przy próbie utworzenia wątku, kod błędu: %d\n", create_result);
-        exit(-1);
-    }
-
     sockaddr_in clientAddress;
     memset(&clientAddress, 0, sizeof(sockaddr));
     socklen_t clientAddressSize = sizeof(clientAddress);
 
+    acceptConnection_data_t* acceptConnection_data = new acceptConnection_data_t();
+
+    acceptConnection_data->socketEpoll = socketEpoll;
+    acceptConnection_data->socket_desc = socket_desc;
+    acceptConnection_data->clientAddress = clientAddress;
+    acceptConnection_data->clientAddressSize = clientAddressSize;
+    acceptConnection_data->event = event;
+
+    pthread_t thread1;
+    create_result = pthread_create(&thread1, NULL, readData, NULL);
+    if (create_result)
+    {
+        std::cerr << "Błąd przy próbie utworzenia wątku, kod błędu: %d\n";
+        exit(-1);
+    }
+    
+    pthread_t thread2;
+    create_result = pthread_create(&thread2, NULL, acceptConnection, (void *) acceptConnection_data);
+    if (create_result)
+    {
+        std::cerr << "Błąd przy próbie utworzenia wątku, kod błędu: %d\n";
+        exit(-1);
+    }
+
+    std::cout << "Serwer uruchomiony\n";
+
     while (isRunning())
     {
-        connection_socket_descriptor = accept(socket_desc, (sockaddr *)&clientAddress, &clientAddressSize);
-        if (connection_socket_descriptor < 0)
+        std::string buf;
+
+        std::cin >> buf;
+
+        if(buf == "exit")
         {
-            fprintf(stderr, "Błąd przy próbie utworzenia gniazda dla połączenia.\n");
-            exit(1);
+            Server::getInstance()->stop();
         }
-
-        fcntl(connection_socket_descriptor, F_SETFL, O_NONBLOCK, 1);
-
-        event.data.ptr = new Connection(connection_socket_descriptor, 120, &clientAddress);
-
-        epoll_ctl(socketEpoll, EPOLL_CTL_ADD, connection_socket_descriptor, &event);
-
-        printf("Połączono z klientem\n");
     }
 
     close(socket_desc);
+}
+
+void Server::stop()
+{
+    if(state & 1)
+    {
+        state = state ^ 1;
+    }
+
+    return;
 }
 
 TorrentInstanceInfo& Server::getTorrentInfo(const std::wstring *info_hash)
