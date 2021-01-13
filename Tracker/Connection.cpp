@@ -1,5 +1,7 @@
 #include "Connection.h"
 
+#include <sys/epoll.h>
+
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
@@ -44,6 +46,7 @@ void Connection::closeConnection()
     state = State::CLOSED;
 
     std::cout << "Klient rozłączony\n";
+    epoll_ctl(Server::getInstance()->getSocketEpoll(), EPOLL_CTL_DEL, socket, NULL);
 
     close(socket);
 }
